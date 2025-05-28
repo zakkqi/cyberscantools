@@ -1,0 +1,300 @@
+/* frontend/src/styles/SSLScanner.css */
+.ssl-scanner-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.scanner-icon.ssl {
+  background-color: var(--success-color);
+}
+
+.ssl-results {
+  margin-top: 2rem;
+}
+
+.ssl-grade-card {
+  background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
+  margin-bottom: 1.5rem;
+}
+
+.grade-content {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.grade-circle {
+  width: 6rem;
+  height: 6rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 2rem;
+  font-weight: bold;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.grade-info h3 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.grade-info p {
+  margin: 0.5rem 0 0 0;
+  color: var(--gray-600);
+}
+
+.ssl-section {
+  margin-bottom: 1.5rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--gray-200);
+  padding-bottom: 0.5rem;
+}
+
+.section-header h3 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cert-status-banner {
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.cert-status-valid {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.cert-status-expiring {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.cert-status-invalid,
+.cert-status-expired {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.cert-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.cert-detail-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.cert-detail-item label {
+  font-weight: 600;
+  color: var(--gray-600);
+  margin-bottom: 0.25rem;
+}
+
+.san-list {
+  margin-top: 1.5rem;
+}
+
+.san-list h4 {
+  margin-bottom: 0.5rem;
+}
+
+.san-list ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+}
+
+.san-list li {
+  background-color: var(--gray-100);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
+.protocols-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.protocol-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--gray-300);
+}
+
+.protocol-item.supported {
+  background-color: #f1f8e9;
+}
+
+.protocol-item.not-supported {
+  background-color: #fafafa;
+}
+
+.protocol-name {
+  font-weight: 600;
+}
+
+.protocol-status {
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.protocol-status.supported {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.protocol-status.not-supported {
+  background-color: var(--gray-400);
+  color: white;
+}
+
+.cipher-table-container {
+  overflow-x: auto;
+}
+
+.cipher-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cipher-table th,
+.cipher-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.cipher-table th {
+  background-color: var(--gray-50);
+  font-weight: 600;
+}
+
+.cipher-strength {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.cipher-strength.strong {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.cipher-strength.medium {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.cipher-strength.weak {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.vulnerabilities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.vulnerability-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--gray-200);
+}
+
+.vulnerability-item.not_vulnerable {
+  background-color: #f1f8e9;
+}
+
+.vulnerability-item.vulnerable {
+  background-color: #ffebee;
+}
+
+.vuln-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.vuln-icon.safe {
+  color: var(--success-color);
+}
+
+.vuln-icon.warning {
+  color: var(--warning-color);
+}
+
+.vuln-icon.danger {
+  color: var(--error-color);
+}
+
+.vuln-info h4 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.vuln-info p {
+  margin: 0.25rem 0;
+  color: var(--gray-600);
+}
+
+.severity {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.severity-high {
+  color: var(--error-color);
+}
+
+.severity-medium {
+  color: var(--warning-color);
+}
+
+.severity-low {
+  color: var(--info-color);
+}
+
+.recommendations-list {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+}
+
+.recommendations-list li {
+  margin-bottom: 0.5rem;
+  color: var(--gray-700);
+}
+
+.text-warning {
+  color: var(--warning-color);
+}

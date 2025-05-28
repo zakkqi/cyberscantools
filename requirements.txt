@@ -1,0 +1,72 @@
+# Web Framework
+flask==3.0.0
+flask-cors==4.0.0
+flask-jwt-extended==4.6.0
+
+# Database
+pymongo==4.6.1
+
+# Security & Hashing
+werkzeug==3.0.1
+
+# HTTP Requests
+requests==2.31.0
+
+# Network Scanning
+python-nmap==0.7.1
+scapy==2.5.0
+
+# SSH/Remote Access
+paramiko==3.4.0
+
+# Web Scraping & Parsing
+beautifulsoup4==4.12.2
+lxml==4.9.4
+
+# Additional utilities that might be needed
+dnspython==2.4.2
+python-whois==0.8.0
+cryptography==41.0.8
+
+# For SSL/TLS scanning
+pyopenssl==23.3.0
+ssl-verify==1.1.1
+
+# For subdomain enumeration
+sublist3r==1.1
+
+# Date/Time utilities
+python-dateutil==2.8.2
+
+# File handling
+pathlib2==2.3.7
+
+# Environment variables
+python-dotenv==1.0.0
+
+# JSON handling (usually built-in, but just in case)
+ujson==5.9.0
+
+# XML parsing (for various scan results)
+xmltodict==0.13.0
+
+# Regular expressions (built-in, but some extensions might need it)
+regex==2023.12.25
+
+# For better error handling and logging
+colorama==0.4.6
+
+# Threading utilities
+concurrent-futures==3.1.1
+
+# For ZAP integration (if using OWASP ZAP)
+python-owasp-zap-v2.4==0.0.21
+
+# For advanced HTTP handling
+urllib3==2.1.0
+
+# For data validation
+validators==0.22.0
+
+# For improved JSON serialization
+bson==0.5.10

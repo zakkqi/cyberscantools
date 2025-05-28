@@ -1,0 +1,2411 @@
+/* frontend/src/components/scanners/ScannerStyles.css */
+.scanner-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.scan-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.scan-input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.scan-select {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.scan-button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.scan-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.scan-results {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.results-summary {
+    margin-bottom: 20px;
+}
+
+.severity-breakdown {
+    display: flex;
+    gap: 20px;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.vulnerability-item {
+    background-color: white;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border-left: 4px solid #ddd;
+}
+
+.vuln-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.risk-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+/* Add these styles to ScannerStyles.css */
+
+.progress-container {
+    background-color: #f5f5f5;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.progress-phase {
+    font-weight: 500;
+    color: #333;
+}
+
+.progress-percentage {
+    font-weight: bold;
+    color: #007bff;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 24px;
+    background-color: #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 12px;
+    transition: width 0.3s ease, background-color 0.3s ease;
+    background-image: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.15) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.15) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 20px 20px;
+    animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 20px 0;
+    }
+}
+
+.sub-progress {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #666;
+}
+
+.scanner-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.scan-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.scan-input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.scan-select {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.scan-button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.scan-button:hover {
+    background-color: #0056b3;
+}
+
+.scan-button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+/* frontend/src/components/scanners/ScannerStyles.css */
+
+/* Container and Layout */
+.scanner-container {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.scanner-header h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 28px;
+}
+
+/* Scan Form */
+.scan-form {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.scan-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.scan-input:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.scan-select {
+    padding: 12px 16px;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+}
+
+.scan-button {
+    padding: 12px 24px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.scan-button:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+}
+
+.scan-button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Error Message */
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Progress Container */
+.progress-container {
+    background-color: #f8f9fa;
+    padding: 24px;
+    border-radius: 8px;
+    margin: 20px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.progress-phase {
+    font-weight: 500;
+    color: #495057;
+}
+
+.progress-percentage {
+    font-weight: bold;
+    color: #007bff;
+    font-size: 18px;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 28px;
+    background-color: #e9ecef;
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 14px;
+    transition: width 0.3s ease, background-color 0.3s ease;
+    background-image: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.15) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.15) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 20px 20px;
+    animation: progress-bar-stripes 1s linear infinite;
+}
+
+/* Results Section */
+.scan-results {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 24px;
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.results-header h3 {
+    color: #2c3e50;
+    margin: 0;
+}
+
+.view-toggle {
+    display: flex;
+    gap: 8px;
+}
+
+.toggle-btn {
+    padding: 8px 16px;
+    border: 1px solid #dee2e6;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.toggle-btn:hover {
+    background: #f8f9fa;
+}
+
+.toggle-btn.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+/* Summary Cards */
+.results-summary {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.summary-card {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.summary-label {
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.summary-value {
+    color: #2c3e50;
+}
+
+/* Severity Summary */
+.severity-summary {
+    display: flex;
+    gap: 12px;
+}
+
+.severity-item {
+    padding: 16px;
+    border-radius: 8px;
+    color: white;
+    text-align: center;
+    min-width: 80px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.severity-count {
+    display: block;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.severity-label {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* Charts Container */
+.charts-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.chart-box {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.chart-box h4 {
+    margin: 0 0 16px 0;
+    color: #2c3e50;
+}
+
+/* Vulnerabilities List */
+.vulnerabilities-list {
+    margin-top: 24px;
+}
+
+.vulnerabilities-list h4 {
+    color: #2c3e50;
+    margin-bottom: 16px;
+}
+
+.vulnerability-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    border-left: 4px solid #dee2e6;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.vulnerability-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.vulnerability-item.high {
+    border-left-color: #dc3545;
+}
+
+.vulnerability-item.medium {
+    border-left-color: #fd7e14;
+}
+
+.vulnerability-item.low {
+    border-left-color: #ffc107;
+}
+
+.vulnerability-item.informational {
+    border-left-color: #17a2b8;
+}
+
+.vuln-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: white;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.vuln-header h5 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 16px;
+}
+
+.risk-badge {
+    padding: 4px 12px;
+    border-radius: 16px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.vuln-details {
+    padding: 16px;
+}
+
+.vuln-details p {
+    margin: 8px 0;
+    color: #495057;
+    line-height: 1.6;
+}
+
+.vuln-details a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.vuln-details a:hover {
+    text-decoration: underline;
+}
+
+.solution-box {
+    background: white;
+    padding: 12px;
+    border-radius: 4px;
+    margin: 12px 0;
+    border: 1px solid #dee2e6;
+}
+
+.vuln-meta {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.meta-tag {
+    background: #e9ecef;
+    color: #495057;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .scan-form {
+        flex-direction: column;
+    }
+    
+    .results-summary {
+        grid-template-columns: 1fr;
+    }
+    
+    .severity-summary {
+        flex-wrap: wrap;
+    }
+    
+    .charts-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Animations */
+@keyframes progress-bar-stripes {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 20px 0;
+    }
+}
+/* frontend/src/components/scanners/ScannerStyles.css */
+
+/* Container and Layout */
+.scanner-container {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.scanner-header h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 28px;
+}
+
+/* Scan Form */
+.scan-form {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.scan-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.scan-input:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.scan-select {
+    padding: 12px 16px;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+}
+
+.scan-button {
+    padding: 12px 24px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.scan-button:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+}
+
+.scan-button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Error Message */
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Progress Container */
+.progress-container {
+    background-color: #f8f9fa;
+    padding: 24px;
+    border-radius: 8px;
+    margin: 20px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.progress-phase {
+    font-weight: 500;
+    color: #495057;
+}
+
+.progress-percentage {
+    font-weight: bold;
+    color: #007bff;
+    font-size: 18px;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 28px;
+    background-color: #e9ecef;
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 14px;
+    transition: width 0.3s ease, background-color 0.3s ease;
+    background-image: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.15) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.15) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 20px 20px;
+    animation: progress-bar-stripes 1s linear infinite;
+}
+
+/* Results Section */
+.scan-results {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 24px;
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.results-header h3 {
+    color: #2c3e50;
+    margin: 0;
+}
+
+.view-toggle {
+    display: flex;
+    gap: 8px;
+}
+
+.toggle-btn {
+    padding: 8px 16px;
+    border: 1px solid #dee2e6;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.toggle-btn:hover {
+    background: #f8f9fa;
+}
+
+.toggle-btn.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+/* Summary Cards */
+.results-summary {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.summary-card {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.summary-label {
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.summary-value {
+    color: #2c3e50;
+}
+
+/* Severity Summary */
+.severity-summary {
+    display: flex;
+    gap: 12px;
+}
+
+.severity-item {
+    padding: 16px;
+    border-radius: 8px;
+    color: white;
+    text-align: center;
+    min-width: 80px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.severity-count {
+    display: block;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.severity-label {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* Charts Container */
+.charts-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.chart-box {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.chart-box h4 {
+    margin: 0 0 16px 0;
+    color: #2c3e50;
+}
+
+/* Vulnerabilities List */
+.vulnerabilities-list {
+    margin-top: 24px;
+}
+
+.vulnerabilities-list h4 {
+    color: #2c3e50;
+    margin-bottom: 16px;
+}
+
+.vulnerability-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    border-left: 4px solid #dee2e6;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.vulnerability-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.vulnerability-item.high {
+    border-left-color: #dc3545;
+}
+
+.vulnerability-item.medium {
+    border-left-color: #fd7e14;
+}
+
+.vulnerability-item.low {
+    border-left-color: #ffc107;
+}
+
+.vulnerability-item.informational {
+    border-left-color: #17a2b8;
+}
+
+.vuln-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: white;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.vuln-header h5 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 16px;
+}
+
+.risk-badge {
+    padding: 4px 12px;
+    border-radius: 16px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.vuln-details {
+    padding: 16px;
+}
+
+.vuln-details p {
+    margin: 8px 0;
+    color: #495057;
+    line-height: 1.6;
+}
+
+.vuln-details a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.vuln-details a:hover {
+    text-decoration: underline;
+}
+
+.solution-box {
+    background: white;
+    padding: 12px;
+    border-radius: 4px;
+    margin: 12px 0;
+    border: 1px solid #dee2e6;
+}
+
+.vuln-meta {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.meta-tag {
+    background: #e9ecef;
+    color: #495057;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .scan-form {
+        flex-direction: column;
+    }
+    
+    .results-summary {
+        grid-template-columns: 1fr;
+    }
+    
+    .severity-summary {
+        flex-wrap: wrap;
+    }
+    
+    .charts-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Animations */
+@keyframes progress-bar-stripes {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 20px 0;
+    }
+}
+/* frontend/src/components/scanners/ScannerStyles.css */
+
+/* Container and Layout */
+.scanner-container {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.scanner-header h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 28px;
+}
+
+/* Scan Form */
+.scan-form {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.scan-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.scan-input:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.scan-select {
+    padding: 12px 16px;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+}
+
+.scan-button {
+    padding: 12px 24px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.scan-button:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+}
+
+.scan-button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Error Message */
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Progress Container */
+.progress-container {
+    background-color: #f8f9fa;
+    padding: 24px;
+    border-radius: 8px;
+    margin: 20px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.progress-phase {
+    font-weight: 500;
+    color: #495057;
+}
+
+.progress-percentage {
+    font-weight: bold;
+    color: #007bff;
+    font-size: 18px;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 28px;
+    background-color: #e9ecef;
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 14px;
+    transition: width 0.3s ease, background-color 0.3s ease;
+    background-image: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.15) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.15) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 20px 20px;
+    animation: progress-bar-stripes 1s linear infinite;
+}
+
+/* Results Section */
+.scan-results {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 24px;
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.results-header h3 {
+    color: #2c3e50;
+    margin: 0;
+}
+
+.view-toggle {
+    display: flex;
+    gap: 8px;
+}
+
+.toggle-btn {
+    padding: 8px 16px;
+    border: 1px solid #dee2e6;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.toggle-btn:hover {
+    background: #f8f9fa;
+}
+
+.toggle-btn.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+/* Summary Cards */
+.results-summary {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.summary-card {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.summary-label {
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.summary-value {
+    color: #2c3e50;
+}
+
+/* Severity Summary */
+.severity-summary {
+    display: flex;
+    gap: 12px;
+}
+
+.severity-item {
+    padding: 16px;
+    border-radius: 8px;
+    color: white;
+    text-align: center;
+    min-width: 80px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.severity-count {
+    display: block;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.severity-label {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* Charts Container */
+.charts-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.chart-box {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.chart-box h4 {
+    margin: 0 0 16px 0;
+    color: #2c3e50;
+}
+
+/* Vulnerabilities List */
+.vulnerabilities-list {
+    margin-top: 24px;
+}
+
+.vulnerabilities-list h4 {
+    color: #2c3e50;
+    margin-bottom: 16px;
+}
+
+.vulnerability-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    border-left: 4px solid #dee2e6;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.vulnerability-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.vulnerability-item.high {
+    border-left-color: #dc3545;
+}
+
+.vulnerability-item.medium {
+    border-left-color: #fd7e14;
+}
+
+.vulnerability-item.low {
+    border-left-color: #ffc107;
+}
+
+.vulnerability-item.informational {
+    border-left-color: #17a2b8;
+}
+
+.vuln-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: white;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.vuln-header h5 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 16px;
+}
+
+.risk-badge {
+    padding: 4px 12px;
+    border-radius: 16px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.vuln-details {
+    padding: 16px;
+}
+
+.vuln-details p {
+    margin: 8px 0;
+    color: #495057;
+    line-height: 1.6;
+}
+
+.vuln-details a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.vuln-details a:hover {
+    text-decoration: underline;
+}
+
+.solution-box {
+    background: white;
+    padding: 12px;
+    border-radius: 4px;
+    margin: 12px 0;
+    border: 1px solid #dee2e6;
+}
+
+.vuln-meta {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.meta-tag {
+    background: #e9ecef;
+    color: #495057;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .scan-form {
+        flex-direction: column;
+    }
+    
+    .results-summary {
+        grid-template-columns: 1fr;
+    }
+    
+    .severity-summary {
+        flex-wrap: wrap;
+    }
+    
+    .charts-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Animations */
+@keyframes progress-bar-stripes {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 20px 0;
+    }
+}
+
+/* Add to ScannerStyles.css */
+
+.scan-mode-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.scan-mode-info {
+    min-height: 20px;
+}
+
+.mode-description {
+    font-size: 0.875rem;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-icon {
+    font-style: normal;
+}
+
+.scan-button .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+/* frontend/src/styles/ScanPage.css - Update atau tambahkan */
+
+.scan-page-container.modern {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 2rem;
+}
+
+.scan-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.scan-header .page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 0.5rem;
+}
+
+.scan-header .page-subtitle {
+  font-size: 1.125rem;
+  color: #64748b;
+}
+
+.scan-grid.modern {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.scan-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.scan-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Card Header with Gradients */
+.card-header {
+  padding: 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  transform: rotate(45deg);
+}
+
+.gradient-blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+.gradient-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+.gradient-red { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+.gradient-purple { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+.gradient-orange { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+.gradient-yellow { background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); }
+.gradient-cyan { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
+
+.scan-icon {
+  font-size: 3rem;
+  color: white;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  position: relative;
+  z-index: 1;
+}
+
+/* Card Body */
+.card-body {
+  padding: 1.5rem;
+  flex: 1;
+}
+
+.scan-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin-bottom: 0.75rem;
+}
+
+.scan-description {
+  font-size: 1rem;
+  color: #4b5563;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.scan-details {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-top: 0.5rem;
+}
+
+.status-badge.status-active {
+  background: #10b981;
+  color: white;
+}
+
+.status-badge.status-partial {
+  background: #f59e0b;
+  color: white;
+}
+
+.status-badge.status-unavailable {
+  background: #ef4444;
+  color: white;
+}
+
+.feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0 0;
+}
+
+.feature-list li {
+  font-size: 0.875rem;
+  color: #059669;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.feature-check {
+  font-weight: bold;
+  color: #10b981;
+}
+
+/* Card Footer */
+.card-footer {
+  padding: 1.5rem;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+}
+
+.select-button {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #1a202c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.select-button:hover {
+  background: #2d3748;
+}
+
+.select-button .arrow {
+  transition: transform 0.2s ease;
+}
+
+.select-button:hover .arrow {
+  transform: translateX(4px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .scan-grid.modern {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .scan-header .page-title {
+    font-size: 2rem;
+  }
+  
+  .scan-page-container.modern {
+    padding: 1rem;
+  }
+}
+
+/* Loading and Error States */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1rem;
+}
+
+.loading-spinner {
+  font-size: 3rem;
+  color: #3b82f6;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.error-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.alert.alert-error {
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  max-width: 500px;
+}
+
+.alert.alert-error h3 {
+  color: #dc2626;
+  margin-bottom: 1rem;
+}
+
+.alert.alert-error p {
+  color: #7f1d1d;
+  margin-bottom: 1.5rem;
+}
+/* Tambahkan ke ScannerStyles.css */
+
+.scanner-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: 1px solid #e5e7eb;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    color: #4b5563;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+    font-weight: 500;
+    width: fit-content;
+}
+
+.back-button:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    color: #1f2937;
+}
+
+.scan-form-card {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.scan-mode-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 1rem 0;
+}
+
+.scan-mode-info {
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    min-height: 80px;
+}
+
+.mode-description {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+}
+
+.mode-description .info-icon {
+    font-style: normal;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.mode-description strong {
+    display: block;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.mode-description p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.scan-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.scan-input {
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.scan-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.scan-select {
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    background: white;
+    cursor: pointer;
+}
+
+.scan-button {
+    padding: 0.75rem 1.5rem;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.scan-button:hover:not(:disabled) {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.scan-button:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.scan-button .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 0.8s linear infinite;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .scanner-header {
+        gap: 0.75rem;
+    }
+    
+    .back-button {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
+}
+
+/* Tambahkan ke ScannerStyles.css */
+
+.about-tool {
+    background: #f9fafb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    border: 1px solid #e5e7eb;
+}
+
+.about-tool h3 {
+    color: #1f2937;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+}
+
+.about-tool p {
+    color: #4b5563;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.about-tool p:last-child {
+    margin-bottom: 0;
+}
+
+.about-tool strong {
+    color: #1f2937;
+}
+
+.scan-modes-comparison {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.scan-modes-comparison h3 {
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+}
+
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+}
+
+.comparison-table th {
+    background: #f3f4f6;
+    color: #1f2937;
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.comparison-table th:first-child {
+    width: 40%;
+}
+
+.comparison-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+    color: #4b5563;
+}
+
+.comparison-table tr:hover {
+    background: #f9fafb;
+}
+
+.comparison-table .check {
+    color: #10b981;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.comparison-table .cross {
+    color: #ef4444;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.scan-notes {
+    background: #f0f9ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+.scan-notes h4 {
+    color: #1e40af;
+    margin-bottom: 0.75rem;
+}
+
+.scan-notes ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.scan-notes li {
+    color: #3730a3;
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+.scan-notes li:last-child {
+    margin-bottom: 0;
+}
+
+.scan-notes strong {
+    color: #1e40af;
+}
+
+/* Responsive design for tables */
+@media (max-width: 768px) {
+    .comparison-table {
+        font-size: 0.875rem;
+    }
+    
+    .comparison-table th,
+    .comparison-table td {
+        padding: 0.5rem;
+    }
+    
+    .comparison-table th:first-child {
+        width: 50%;
+    }
+}
+/* Add to ScannerStyles.css */
+
+.severity-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1.5rem 0;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 0;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    color: #6b7280;
+    font-weight: 500;
+    font-size: 0.875rem;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    margin-bottom: -2px;
+}
+
+.tab-button:hover {
+    color: #4b5563;
+    background: #f9fafb;
+}
+
+.tab-button.active {
+    color: #1f2937;
+    border-bottom-color: #3b82f6;
+}
+
+.tab-button.high.active {
+    color: #dc3545;
+    border-bottom-color: #dc3545;
+}
+
+.tab-button.medium.active {
+    color: #fd7e14;
+    border-bottom-color: #fd7e14;
+}
+
+.tab-button.low.active {
+    color: #ffc107;
+    border-bottom-color: #ffc107;
+}
+
+.tab-button.info.active {
+    color: #17a2b8;
+    border-bottom-color: #17a2b8;
+}
+
+/* Make severity items clickable */
+.severity-item.clickable {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.severity-item.clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.severity-item.clickable.active {
+    border: 3px solid white;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Empty state for tabs */
+.vulnerabilities-list:empty::after {
+    content: "No vulnerabilities found in this category";
+    display: block;
+    text-align: center;
+    padding: 3rem;
+    color: #9ca3af;
+    font-style: italic;
+}
+/* Tambahkan ke ScannerStyles.css */
+
+.scanner-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: 1px solid #e5e7eb;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    color: #4b5563;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+    font-weight: 500;
+    width: fit-content;
+}
+
+.back-button:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    color: #1f2937;
+}
+
+.scan-form-card {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.scan-mode-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 1rem 0;
+}
+
+.scan-mode-info {
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    min-height: 80px;
+}
+
+.mode-description {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+}
+
+.mode-description .info-icon {
+    font-style: normal;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.mode-description strong {
+    display: block;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.mode-description p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.scan-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.scan-input {
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.scan-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.scan-select {
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    background: white;
+    cursor: pointer;
+}
+
+.scan-button {
+    padding: 0.75rem 1.5rem;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.scan-button:hover:not(:disabled) {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.scan-button:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.scan-button .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 0.8s linear infinite;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .scanner-header {
+        gap: 0.75rem;
+    }
+    
+    .back-button {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
+}
+
+/* Enhanced Web Vulnerability Scanner Styles */
+/* Add this to your existing ScannerStyles.css */
+
+/* Header Enhancements */
+.scanner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.header-content {
+  flex: 1;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.action-btn {
+  padding: 0.5rem 1rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: #0056b3;
+  transform: translateY(-1px);
+}
+
+/* Input Validation */
+.input-group {
+  position: relative;
+}
+
+.scan-input.invalid {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.validation-message {
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.validation-message.success {
+  color: #28a745;
+  background: rgba(40, 167, 69, 0.1);
+  border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.validation-message.warning {
+  color: #fd7e14;
+  background: rgba(253, 126, 20, 0.1);
+  border: 1px solid rgba(253, 126, 20, 0.3);
+}
+
+.validation-message.error {
+  color: #dc3545;
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+/* Scanner Features Enhancement */
+.scanner-features {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #007bff;
+}
+
+.scanner-features h4 {
+  color: #007bff;
+  margin-bottom: 1rem;
+}
+
+.scanner-features ul {
+  list-style: none;
+  padding: 0;
+}
+
+.scanner-features li {
+  padding: 0.5rem 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.scanner-features li::before {
+  content: "🔧";
+  flex-shrink: 0;
+}
+
+/* Progress Enhancements */
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1;
+}
+
+.scan-timing {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+/* Enhanced Vulnerability Items */
+.vulnerability-item {
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  background: white;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.vulnerability-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.vuln-header {
+  padding: 1rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vuln-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.risk-icon {
+  font-size: 1.2rem;
+}
+
+.vuln-badges {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.cvss-badge {
+  padding: 0.25rem 0.5rem;
+  background: #6c757d;
+  color: white;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.expand-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #007bff;
+  font-size: 1.2rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.expand-btn:hover {
+  background: rgba(0, 123, 255, 0.1);
+}
+
+.vuln-summary {
+  padding: 1rem;
+}
+
+.vuln-url {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.vuln-url a {
+  color: #007bff;
+  text-decoration: none;
+  word-break: break-all;
+  flex: 1;
+  min-width: 0;
+}
+
+.copy-btn {
+  background: none;
+  border: 1px solid #dee2e6;
+  color: #6c757d;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}

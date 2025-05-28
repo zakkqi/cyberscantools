@@ -1,0 +1,99 @@
+/* frontend/src/styles/VirusTotalScanner.css */
+.virustotal-scanner {
+  margin-bottom: 20px;
+}
+
+.scanner-card {
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.scanner-description {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.scanner-icon {
+  font-size: 36px;
+  margin-right: 16px;
+  color: #1890ff;
+}
+
+.scanning-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.results-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stats-container {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.detection-rate {
+  text-align: center;
+  flex: 1;
+}
+
+.detection-details {
+  flex: 1;
+}
+
+.detection-details ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.detection-details li {
+  margin-bottom: 8px;
+}
+
+.result-details-card {
+  margin-top: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.summary-stats {
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  text-align: center;
+  border-radius: 8px;
+}
+
+.stat-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+}
+
+.malicious {
+  background-color: rgba(255, 77, 79, 0.1);
+}
+
+.suspicious {
+  background-color: rgba(250, 173, 20, 0.1);
+}
+
+.harmless {
+  background-color: rgba(82, 196, 26, 0.1);
+}
+
+.undetected {
+  background-color: rgba(24, 144, 255, 0.1);
+}
+
+.additional-info {
+  margin-top: 20px;
+}
