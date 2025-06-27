@@ -1,5 +1,5 @@
-// frontend/src/components/Dashboard.js - Page Component Version
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+// frontend/src/pages/Dashboard.jsx - UPDATED WITH CLEAN PROFESSIONAL STYLE
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { 
@@ -13,18 +13,28 @@ import {
   FaSearch,
   FaRocket,
   FaHistory,
-  FaUsers,
   FaClock,
   FaEye,
   FaDownload,
-  FaSyncAlt
+  FaSyncAlt,
+  FaWifi,
+  FaBug,
+  FaTachometerAlt,
+  FaLightbulb,
+  FaExclamationCircle,
+  FaUser,
+  FaGoogle
 } from 'react-icons/fa';
 import { historyService } from '../services/historyService';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import '../styles/Dashboard.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user } = useSelector(state => state.auth);
+  
+  // Redux state
+  const currentUser = useSelector(state => state.auth.user);
+  const { token } = useSelector(state => state.auth);
   
   const [dashboardData, setDashboardData] = useState({
     totalScans: 0,
@@ -38,24 +48,26 @@ const Dashboard = () => {
     vulnerabilityTrends: []
   });
   
-  const [timeRange] = useState(14); // 14 days
+  const [timeRange] = useState(14);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(new Date());
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Colors for charts
+  // Colors for charts - modern palette
   const COLORS = {
-    high: '#dc3545',
-    medium: '#fd7e14',
-    low: '#ffc107',
-    success: '#28a745',
-    primary: '#007bff',
-    info: '#17a2b8'
+    high: '#ef4444',
+    medium: '#f59e0b',
+    low: '#10b981',
+    success: '#22c55e',
+    primary: '#3b82f6',
+    info: '#06b6d4',
+    purple: '#8b5cf6',
+    indigo: '#6366f1'
   };
 
-  const PIE_COLORS = ['#007bff', '#28a745', '#dc3545', '#fd7e14', '#6f42c1', '#20c997', '#ffc107'];
+  const PIE_COLORS = ['#3b82f6', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#06b6d4', '#f97316'];
 
-  // Memoized data calculations
   const calculateMetrics = useCallback((scans) => {
     let highRisk = 0;
     let mediumRisk = 0;
@@ -63,9 +75,15 @@ const Dashboard = () => {
 
     scans.forEach(scan => {
       const summary = scan.summary || {};
-      highRisk += summary.high_severity || 0;
-      mediumRisk += summary.medium_severity || 0;
-      lowRisk += summary.low_severity || 0;
+      const vulnerabilities = scan.vulnerabilities || [];
+      
+      // Try both summary and vulnerabilities array
+      highRisk += summary.high_severity || 
+                  vulnerabilities.filter(v => v.severity === 'critical' || v.severity === 'high').length || 0;
+      mediumRisk += summary.medium_severity || 
+                    vulnerabilities.filter(v => v.severity === 'medium').length || 0;
+      lowRisk += summary.low_severity || 
+                 vulnerabilities.filter(v => v.severity === 'low' || v.severity === 'info').length || 0;
     });
 
     return { highRisk, mediumRisk, lowRisk };
@@ -74,7 +92,6 @@ const Dashboard = () => {
   const calculateTrends = useCallback((scans) => {
     const dailyScans = {};
     
-    // Initialize last 14 days
     for (let i = timeRange - 1; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
@@ -88,7 +105,6 @@ const Dashboard = () => {
       };
     }
 
-    // Populate with actual data
     scans.forEach(scan => {
       const scanDate = new Date(scan.timestamp).toISOString().split('T')[0];
       if (dailyScans[scanDate]) {
@@ -100,10 +116,12 @@ const Dashboard = () => {
         }
         
         const summary = scan.summary || {};
+        const vulnerabilities = scan.vulnerabilities || [];
         dailyScans[scanDate].vulnerabilities += 
           (summary.high_severity || 0) + 
           (summary.medium_severity || 0) + 
-          (summary.low_severity || 0);
+          (summary.low_severity || 0) + 
+          vulnerabilities.length;
       }
     });
 
@@ -138,7 +156,6 @@ const Dashboard = () => {
   const calculateVulnerabilityTrends = useCallback((scans) => {
     const vulnTrends = {};
     
-    // Initialize last 14 days
     for (let i = timeRange - 1; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
@@ -155,9 +172,14 @@ const Dashboard = () => {
       const scanDate = new Date(scan.timestamp).toISOString().split('T')[0];
       if (vulnTrends[scanDate]) {
         const summary = scan.summary || {};
-        vulnTrends[scanDate].high += summary.high_severity || 0;
-        vulnTrends[scanDate].medium += summary.medium_severity || 0;
-        vulnTrends[scanDate].low += summary.low_severity || 0;
+        const vulnerabilities = scan.vulnerabilities || [];
+        
+        vulnTrends[scanDate].high += summary.high_severity || 
+                                     vulnerabilities.filter(v => v.severity === 'critical' || v.severity === 'high').length || 0;
+        vulnTrends[scanDate].medium += summary.medium_severity || 
+                                       vulnerabilities.filter(v => v.severity === 'medium').length || 0;
+        vulnTrends[scanDate].low += summary.low_severity || 
+                                    vulnerabilities.filter(v => v.severity === 'low' || v.severity === 'info').length || 0;
       }
     });
 
@@ -167,7 +189,6 @@ const Dashboard = () => {
   const calculateSystemHealth = useCallback((scans) => {
     const total = scans.length;
     const successful = scans.filter(s => s.status === 'completed').length;
-    const failed = scans.filter(s => s.status === 'failed').length;
     
     return {
       successRate: total > 0 ? Math.round((successful / total) * 100) : 100,
@@ -179,10 +200,11 @@ const Dashboard = () => {
 
   const loadDashboardData = useCallback(async () => {
     try {
-      setLoading(true);
+      setRefreshing(true);
+      
+      // Get real history from service
       const history = historyService.getAllHistory();
       
-      // Filter to last 14 days
       const fourteenDaysAgo = new Date();
       fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - timeRange);
       
@@ -190,7 +212,6 @@ const Dashboard = () => {
         new Date(scan.timestamp) >= fourteenDaysAgo
       );
 
-      // Calculate metrics
       const metrics = calculateMetrics(recentHistory);
       const trends = calculateTrends(recentHistory);
       const scannerStats = calculateScannerBreakdown(recentHistory);
@@ -203,7 +224,7 @@ const Dashboard = () => {
         lowRisk: metrics.lowRisk,
         scanTrends: trends,
         scannerBreakdown: scannerStats,
-        recentScans: recentHistory.slice(0, 5), // Latest 5 scans
+        recentScans: recentHistory.slice(0, 5),
         systemHealth: calculateSystemHealth(recentHistory),
         vulnerabilityTrends: vulnTrends
       });
@@ -213,54 +234,56 @@ const Dashboard = () => {
       console.error('Error loading dashboard data:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [timeRange, calculateMetrics, calculateTrends, calculateScannerBreakdown, calculateVulnerabilityTrends, calculateSystemHealth]);
 
-  // Initial load and event listeners
   useEffect(() => {
     loadDashboardData();
     
-    // Listen for scan completion events
     const handleScanCompleted = () => {
       loadDashboardData();
     };
 
-    const handleForceRefresh = () => {
-      loadDashboardData();
-    };
-
     window.addEventListener('scan-completed', handleScanCompleted);
-    window.addEventListener('force-dashboard-refresh', handleForceRefresh);
+    window.addEventListener('force-dashboard-refresh', handleScanCompleted);
     
     return () => {
       window.removeEventListener('scan-completed', handleScanCompleted);
-      window.removeEventListener('force-dashboard-refresh', handleForceRefresh);
+      window.removeEventListener('force-dashboard-refresh', handleScanCompleted);
     };
   }, [loadDashboardData]);
 
-  // Auto-refresh every 30 seconds
   useEffect(() => {
     if (!autoRefresh) return;
 
     const interval = setInterval(() => {
       loadDashboardData();
-    }, 30000); // 30 seconds
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [autoRefresh, loadDashboardData]);
 
   const formatScannerName = (scannerType) => {
     const nameMap = {
+      'port-scanner': 'Port Scanner',
       'port_scanner': 'Port Scanner',
-      'ssl_scanner': 'SSL Scanner', 
+      'ssl-scanner': 'SSL Scanner', 
+      'ssl_scanner': 'SSL Scanner',
+      'web-vulnerability': 'Web Vuln',
       'web_vulnerability': 'Web Vuln',
-      'subdomain_finder': 'Subdomain',
+      'subdomain-scanner': 'Subdomain',
+      'subdomain_scanner': 'Subdomain',
+      'defacement-scanner': 'Defacement',
       'defacement_scanner': 'Defacement',
+      'google-poisoning': 'G. Poisoning',
       'google_poisoning': 'G. Poisoning',
+      'google-dorking': 'G. Dorking',
       'google_dorking': 'G. Dorking',
+      'virustotal-scanner': 'VirusTotal',
       'virustotal_scanner': 'VirusTotal'
     };
-    return nameMap[scannerType] || scannerType;
+    return nameMap[scannerType] || scannerType.replace(/[-_]/g, ' ');
   };
 
   const formatTimeAgo = (timestamp) => {
@@ -276,23 +299,89 @@ const Dashboard = () => {
 
   const getSeverityIcon = (scan) => {
     const summary = scan.summary || {};
-    if (summary.high_severity > 0) return { icon: '🔴', class: 'high-risk' };
-    if (summary.medium_severity > 0) return { icon: '🟡', class: 'medium-risk' };
-    if (summary.low_severity > 0) return { icon: '🟢', class: 'low-risk' };
-    return { icon: '⚪', class: 'no-risk' };
+    const vulnerabilities = scan.vulnerabilities || [];
+    
+    const highCount = summary.high_severity || vulnerabilities.filter(v => v.severity === 'critical' || v.severity === 'high').length || 0;
+    const mediumCount = summary.medium_severity || vulnerabilities.filter(v => v.severity === 'medium').length || 0;
+    const lowCount = summary.low_severity || vulnerabilities.filter(v => v.severity === 'low' || v.severity === 'info').length || 0;
+    
+    if (highCount > 0) return { icon: <FaExclamationTriangle />, class: 'high-risk' };
+    if (mediumCount > 0) return { icon: <FaExclamationCircle />, class: 'medium-risk' };
+    if (lowCount > 0) return { icon: <FaCheckCircle />, class: 'low-risk' };
+    return { icon: <FaShieldAlt />, class: 'no-risk' };
   };
+
+  // UPDATED: Quick Action Scanner configurations with clean professional design
+  const quickActionScanners = [
+    {
+      id: 'port-scan',
+      title: 'Port Scan',
+      description: 'Quick port scan for common services and open ports',
+      icon: <FaServer />,
+      route: 'port'
+    },
+    {
+      id: 'web-vuln',
+      title: 'Web Vulnerability Scan',
+      description: 'OWASP ZAP security scan for web applications',
+      icon: <FaGlobe />,
+      route: 'web-vuln'
+    },
+    {
+      id: 'ssl-check',
+      title: 'SSL/TLS Check',
+      description: 'Certificate and protocol security verification',
+      icon: <FaLock />,
+      route: 'ssl'
+    },
+    {
+      id: 'subdomain-scan',
+      title: 'Subdomain Discovery',
+      description: 'Find and enumerate subdomains of target domain',
+      icon: <FaSearch />,
+      route: 'subdomain'
+    },
+    {
+      id: 'defacement-scan',
+      title: 'Web Defacement Scan',
+      description: 'Monitor and detect website defacement activities',
+      icon: <FaShieldAlt />,
+      route: 'defacement'
+    },
+    {
+      id: 'google-poisoning',
+      title: 'Google Poisoning Scan',
+      description: 'Detect search engine poisoning and malicious SEO',
+      icon: <FaExclamationTriangle />,
+      route: 'google-poisoning'
+    },
+    {
+      id: 'google-dorking',
+      title: 'Google Dorking Scan',
+      description: 'Find exposed information using Google operators',
+      icon: <FaGoogle />,
+      route: 'google-dorking'
+    },
+    {
+      id: 'virustotal-scan',
+      title: 'VirusTotal Scan',
+      description: 'Multi-engine scanning for malicious files and URLs',
+      icon: <FaBug />,
+      route: 'virustotal'
+    }
+  ];
 
   const handleStartScan = (scannerType = null) => {
     if (scannerType) {
-      // Navigate to specific scanner
       const scannerRoutes = {
         'port': '/new-scan?scanner=port',
         'web-vuln': '/new-scan?scanner=web-vulnerability', 
         'ssl': '/new-scan?scanner=ssl',
         'subdomain': '/new-scan?scanner=subdomain',
         'defacement': '/new-scan?scanner=defacement',
-        'google-dorking': '/google-dorking',
-        'virustotal': '/virustotal'
+        'google-poisoning': '/new-scan?scanner=google-poisoning',
+        'google-dorking': '/new-scan?scanner=google-dorking',
+        'virustotal': '/new-scan?scanner=virustotal'
       };
       
       const route = scannerRoutes[scannerType] || '/new-scan';
@@ -303,7 +392,7 @@ const Dashboard = () => {
   };
 
   const handleViewScanDetails = (scanId) => {
-    navigate(`/scan-results/${scanId}`);
+    navigate('/scan-history');
   };
 
   const handleExportData = () => {
@@ -319,7 +408,7 @@ const Dashboard = () => {
       <div className="dashboard-loading">
         <div className="loading-spinner">
           <FaSyncAlt className="spin" />
-          Loading dashboard...
+          <span>Loading dashboard...</span>
         </div>
       </div>
     );
@@ -327,24 +416,27 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
-      {/* Header */}
+      {/* Header with User Info */}
       <div className="dashboard-header">
         <div className="header-content">
-          <h1>Security Dashboard</h1>
-          <div className="header-meta">
-            {user && (
-              <div className="user-info">
-                <FaUsers className="icon" />
-                Welcome, {user.username || user.email}
+          <div className="header-title">
+            <h1>
+              <FaTachometerAlt /> 
+              Security Dashboard
+            </h1>
+            <div className="header-meta">
+              <div className="user-welcome">
+                <FaUser className="icon" />
+                Welcome back, {currentUser?.first_name || currentUser?.username || 'User'}!
               </div>
-            )}
-            <div className="last-update">
-              <FaClock className="icon" />
-              Last updated: {lastUpdate.toLocaleTimeString()}
-            </div>
-            <div className="time-range">
-              <FaHistory className="icon" />
-              Last {timeRange} days
+              <div className="last-update">
+                <FaClock className="icon" />
+                Last updated: {lastUpdate.toLocaleTimeString()}
+              </div>
+              <div className="time-range">
+                <FaHistory className="icon" />
+                Last {timeRange} days
+              </div>
             </div>
           </div>
         </div>
@@ -353,8 +445,9 @@ const Dashboard = () => {
             className="btn btn-secondary refresh-btn"
             onClick={handleManualRefresh}
             title="Refresh Dashboard"
+            disabled={refreshing}
           >
-            <FaSyncAlt className={loading ? 'spin' : ''} />
+            <FaSyncAlt className={refreshing ? 'spin' : ''} />
           </button>
           <button 
             className="btn btn-secondary export-btn"
@@ -398,7 +491,7 @@ const Dashboard = () => {
 
         <div className="metric-card medium-risk">
           <div className="metric-icon">
-            <FaShieldAlt />
+            <FaExclamationCircle />
           </div>
           <div className="metric-content">
             <h3>{dashboardData.mediumRisk}</h3>
@@ -439,14 +532,16 @@ const Dashboard = () => {
           <div className="chart-container">
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={dashboardData.scanTrends}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis 
                   dataKey="date" 
                   tickFormatter={(date) => new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                  stroke="#6b7280"
                 />
-                <YAxis />
+                <YAxis stroke="#6b7280" />
                 <Tooltip 
                   labelFormatter={(date) => new Date(date).toLocaleDateString()}
+                  contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
                 />
                 <Line 
                   type="monotone" 
@@ -454,6 +549,7 @@ const Dashboard = () => {
                   stroke={COLORS.primary} 
                   strokeWidth={3}
                   name="Total Scans"
+                  dot={{ fill: COLORS.primary, strokeWidth: 2, r: 4 }}
                 />
                 <Line 
                   type="monotone" 
@@ -461,6 +557,7 @@ const Dashboard = () => {
                   stroke={COLORS.success} 
                   strokeWidth={2}
                   name="Successful"
+                  dot={{ fill: COLORS.success, strokeWidth: 2, r: 3 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -489,14 +586,16 @@ const Dashboard = () => {
           <div className="chart-container">
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={dashboardData.vulnerabilityTrends}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis 
                   dataKey="date" 
                   tickFormatter={(date) => new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                  stroke="#6b7280"
                 />
-                <YAxis />
+                <YAxis stroke="#6b7280" />
                 <Tooltip 
                   labelFormatter={(date) => new Date(date).toLocaleDateString()}
+                  contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
                 />
                 <Line 
                   type="monotone" 
@@ -504,6 +603,7 @@ const Dashboard = () => {
                   stroke={COLORS.high} 
                   strokeWidth={3}
                   name="High Risk"
+                  dot={{ fill: COLORS.high, strokeWidth: 2, r: 4 }}
                 />
                 <Line 
                   type="monotone" 
@@ -511,6 +611,7 @@ const Dashboard = () => {
                   stroke={COLORS.medium} 
                   strokeWidth={2}
                   name="Medium Risk"
+                  dot={{ fill: COLORS.medium, strokeWidth: 2, r: 3 }}
                 />
                 <Line 
                   type="monotone" 
@@ -518,6 +619,7 @@ const Dashboard = () => {
                   stroke={COLORS.low} 
                   strokeWidth={2}
                   name="Low Risk"
+                  dot={{ fill: COLORS.low, strokeWidth: 2, r: 3 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -541,7 +643,6 @@ const Dashboard = () => {
                     cx="50%"
                     cy="50%"
                     outerRadius={80}
-                    fill="#8884d8"
                     dataKey="count"
                     label={({ name, value }) => `${name}: ${value}`}
                   >
@@ -549,11 +650,12 @@ const Dashboard = () => {
                       <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px' }} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
               <div className="no-data">
+                <FaBug style={{ fontSize: '3rem', color: '#9ca3af', marginBottom: '1rem' }} />
                 <p>No scanner data available</p>
                 <button className="btn btn-primary" onClick={() => handleStartScan()}>
                   Start First Scan
@@ -566,29 +668,41 @@ const Dashboard = () => {
         {/* System Health */}
         <div className="health-card">
           <div className="chart-header">
-            <h3>System Health</h3>
+            <h3><FaTachometerAlt /> System Health</h3>
           </div>
           <div className="health-stats">
             <div className="health-item">
-              <div className="health-label">Success Rate</div>
+              <div className="health-label">
+                <FaCheckCircle style={{ color: COLORS.success, marginRight: '0.5rem' }} />
+                Success Rate
+              </div>
               <div className="health-value success">
                 {dashboardData.systemHealth.successRate}%
               </div>
             </div>
             <div className="health-item">
-              <div className="health-label">Total Scans</div>
+              <div className="health-label">
+                <FaChartLine style={{ color: COLORS.primary, marginRight: '0.5rem' }} />
+                Total Scans
+              </div>
               <div className="health-value">
                 {dashboardData.systemHealth.totalScans}
               </div>
             </div>
             <div className="health-item">
-              <div className="health-label">Avg Duration</div>
+              <div className="health-label">
+                <FaClock style={{ color: COLORS.info, marginRight: '0.5rem' }} />
+                Avg Duration
+              </div>
               <div className="health-value">
                 {Math.floor(dashboardData.systemHealth.avgDuration / 1000)}s
               </div>
             </div>
             <div className="health-item">
-              <div className="health-label">Auto Refresh</div>
+              <div className="health-label">
+                <FaSyncAlt style={{ color: COLORS.purple, marginRight: '0.5rem' }} />
+                Auto Refresh
+              </div>
               <label className="health-toggle">
                 <input 
                   type="checkbox" 
@@ -602,61 +716,34 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions - UPDATED TO CLEAN PROFESSIONAL GRID */}
       <div className="quick-actions-section">
-        <h3>Quick Actions</h3>
+        <h3><FaRocket /> Quick Actions</h3>
         <div className="quick-actions-grid">
-          <div className="action-card port-scan">
-            <div className="action-icon">
-              <FaServer />
+          {quickActionScanners.map((scanner) => (
+            <div 
+              key={scanner.id} 
+              className="action-card"
+              onClick={() => handleStartScan(scanner.route)}
+            >
+              <div className="action-icon">
+                {scanner.icon}
+              </div>
+              <div className="action-content">
+                <h4>{scanner.title}</h4>
+                <p>{scanner.description}</p>
+              </div>
+              <button 
+                className="action-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStartScan(scanner.route);
+                }}
+              >
+                Start Scan
+              </button>
             </div>
-            <div className="action-content">
-              <h4>Port Scan</h4>
-              <p>Quick port scan for common services</p>
-            </div>
-            <button className="action-btn" onClick={() => handleStartScan('port')}>
-              Start Scan
-            </button>
-          </div>
-
-          <div className="action-card web-vuln">
-            <div className="action-icon">
-              <FaGlobe />
-            </div>
-            <div className="action-content">
-              <h4>Web Vulnerability Scan</h4>
-              <p>OWASP ZAP security scan</p>
-            </div>
-            <button className="action-btn" onClick={() => handleStartScan('web-vuln')}>
-              Start Scan
-            </button>
-          </div>
-
-          <div className="action-card ssl-check">
-            <div className="action-icon">
-              <FaLock />
-            </div>
-            <div className="action-content">
-              <h4>SSL/TLS Check</h4>
-              <p>Certificate and protocol verification</p>
-            </div>
-            <button className="action-btn" onClick={() => handleStartScan('ssl')}>
-              Start Scan
-            </button>
-          </div>
-
-          <div className="action-card subdomain-scan">
-            <div className="action-icon">
-              <FaSearch />
-            </div>
-            <div className="action-content">
-              <h4>Subdomain Discovery</h4>
-              <p>Find subdomains of target domain</p>
-            </div>
-            <button className="action-btn" onClick={() => handleStartScan('subdomain')}>
-              Start Scan
-            </button>
-          </div>
+          ))}
         </div>
       </div>
 
@@ -675,6 +762,7 @@ const Dashboard = () => {
         <div className="activity-list">
           {dashboardData.recentScans.length === 0 ? (
             <div className="no-activity">
+              <FaHistory style={{ fontSize: '3rem', color: '#9ca3af', marginBottom: '1rem' }} />
               <p>No recent scan activity</p>
               <button className="btn btn-primary" onClick={() => handleStartScan()}>
                 Start Your First Scan
@@ -699,16 +787,17 @@ const Dashboard = () => {
                     </div>
                     <div className="activity-meta">
                       <span className={`status ${scan.status}`}>
-                        {scan.status === 'completed' ? '✅ Completed' : '❌ Failed'}
+                        {scan.status === 'completed' ? 'Completed' : 'Failed'}
                       </span>
                       <span className="timestamp">
                         {formatTimeAgo(scan.timestamp)}
                       </span>
-                      {scan.summary && (
+                      {(scan.summary || scan.vulnerabilities) && (
                         <span className="findings">
-                          {(scan.summary.high_severity || 0) + 
-                           (scan.summary.medium_severity || 0) + 
-                           (scan.summary.low_severity || 0)} findings
+                          {((scan.summary?.high_severity || 0) + 
+                            (scan.summary?.medium_severity || 0) + 
+                            (scan.summary?.low_severity || 0) +
+                            (scan.vulnerabilities?.length || 0))} findings
                         </span>
                       )}
                       {scan.duration && (
@@ -737,16 +826,16 @@ const Dashboard = () => {
       {/* Dashboard Insights */}
       {dashboardData.totalScans > 0 && (
         <div className="insights-section">
-          <h3>📊 Insights & Recommendations</h3>
+          <h3><FaLightbulb /> Insights & Recommendations</h3>
           <div className="insights-grid">
             {dashboardData.highRisk > 0 && (
               <div className="insight-card critical">
-                <h4>⚠️ High Risk Findings</h4>
+                <h4><FaExclamationTriangle /> High Risk Findings</h4>
                 <p>
                   Found {dashboardData.highRisk} high-risk vulnerabilities. 
                   Consider prioritizing these for immediate remediation.
                 </p>
-                <button className="insight-action" onClick={() => navigate('/scan-history?filter=high-risk')}>
+                <button className="insight-action" onClick={() => navigate('/scan-history')}>
                   View High Risk Scans
                 </button>
               </div>
@@ -754,7 +843,7 @@ const Dashboard = () => {
             
             {dashboardData.systemHealth.successRate < 80 && (
               <div className="insight-card warning">
-                <h4>🔧 System Performance</h4>
+                <h4><FaWifi /> System Performance</h4>
                 <p>
                   Success rate is {dashboardData.systemHealth.successRate}%. 
                   Check scanner configurations and network connectivity.
@@ -765,11 +854,11 @@ const Dashboard = () => {
               </div>
             )}
             
-            {dashboardData.totalScans === 0 && (
+            {dashboardData.totalScans < 5 && (
               <div className="insight-card info">
-                <h4>🚀 Get Started</h4>
+                <h4><FaRocket /> Get Started</h4>
                 <p>
-                  No scans performed yet. Start with a port scan to discover 
+                  Limited scan history. Start with a port scan to discover 
                   open services on your target systems.
                 </p>
                 <button className="insight-action" onClick={() => handleStartScan('port')}>
@@ -780,7 +869,7 @@ const Dashboard = () => {
             
             {dashboardData.scannerBreakdown.length === 1 && (
               <div className="insight-card tip">
-                <h4>💡 Scanner Diversity</h4>
+                <h4><FaLightbulb /> Scanner Diversity</h4>
                 <p>
                   You're only using one scanner type. Try different scanners 
                   for comprehensive security assessment.

@@ -70,3 +70,19 @@ validators==0.22.0
 
 # For improved JSON serialization
 bson==0.5.10
+# Defacement Scanner specific dependencies
+selenium>=4.0.0
+webdriver-manager>=3.8.0
+pillow>=8.0.0
+numpy>=1.21.0
+
+# Optional for better screenshot capabilities
+# opencv-python>=4.5.0  # For advanced image processing
+# wkhtmltopdf  # Alternative screenshot method (system package)
+
+# For text similarity comparison
+difflib  # Built-in Python module
+
+# For HTML parsing (optional)
+beautifulsoup4>=4.9.0
+lxml>=4.6.0

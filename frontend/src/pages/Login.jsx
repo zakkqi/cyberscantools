@@ -62,7 +62,6 @@ const Login = () => {
                         <div className="form-group">
                             <label htmlFor="username">Username or Email</label>
                             <div className="input-with-icon">
-                                <i className="icon user-icon">👤</i>
                                 <input
                                     type="text"
                                     id="username"
@@ -78,7 +77,6 @@ const Login = () => {
                         <div className="form-group">
                             <label htmlFor="password">Password</label>
                             <div className="input-with-icon">
-                                <i className="icon password-icon">🔒</i>
                                 <input
                                     type="password"
                                     id="password"

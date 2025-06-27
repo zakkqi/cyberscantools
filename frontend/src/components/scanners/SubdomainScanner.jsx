@@ -1,6 +1,6 @@
 // frontend/src/components/scanners/SubdomainScanner.jsx
 import React, { useState } from 'react';
-import { FaSearch, FaSpinner, FaArrowLeft } from 'react-icons/fa';
+import { FaSearch, FaSpinner, FaArrowLeft, FaCog } from 'react-icons/fa';
 import { api } from '../../utils/api';
 import { historyService } from '../../services/historyService';
 import SubdomainResults from './SubdomainResults';
@@ -8,26 +8,22 @@ import '../../styles/SubdomainScanner.css';
 
 const SubdomainScanner = ({ onBack }) => {
   const [target, setTarget] = useState('');
-  const [wordlistOption, setWordlistOption] = useState('default');
-  const [customWordlist, setCustomWordlist] = useState('');
+  const [wordlistOption, setWordlistOption] = useState('standard');
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   const [options, setOptions] = useState({
-    includeWhois: true,
-    detectTechnologies: true,
-    includeUnresolved: false,
-    searchHistorical: true,
-    interrogateDNS: true,
-    useExternalAPIs: true,
-    certificateTransparency: true,
-    searchEngineQueries: true,
-    checkSSLCertificates: true,
-    reverseDNS: false,
-    generatePermutations: true,
-    cnameLookup: true
+    dns_enumeration: true,
+    certificate_transparency: true,
+    dns_records: true,
+    whois_info: false,
+    check_http: false,
+    include_unresolved: true
   });
   
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
+  const [progress, setProgress] = useState('');
+  const [currentStep, setCurrentStep] = useState(0);
   
   const handleOptionChange = (name) => {
     setOptions(prev => ({
@@ -38,20 +34,41 @@ const SubdomainScanner = ({ onBack }) => {
   
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!target.trim()) return;
+    
     setLoading(true);
     setError(null);
     setResults(null);
-    const startTime = Date.now();
+    setProgress('Initializing scan...');
+    setCurrentStep(0);
     
+    const startTime = Date.now();
     const scanOptions = {
       ...options,
-      wordlist: wordlistOption === 'custom' ? customWordlist : wordlistOption
+      wordlist: wordlistOption
     };
     
     try {
-      console.log("Sending subdomain scan request:", { target, scan_options: scanOptions });
+      // Simulate progress updates with steps
+      const progressSteps = [
+        { step: 0, text: 'Performing DNS enumeration...' },
+        { step: 1, text: 'Searching Certificate Transparency logs...' },
+        { step: 2, text: 'Processing DNS records...' },
+        { step: 2, text: 'Resolving subdomains...' },
+        { step: 2, text: 'Finalizing results...' }
+      ];
+      
+      let stepIndex = 0;
+      const progressInterval = setInterval(() => {
+        if (stepIndex < progressSteps.length) {
+          setProgress(progressSteps[stepIndex].text);
+          setCurrentStep(progressSteps[stepIndex].step);
+          stepIndex++;
+        }
+      }, 1500);
+      
       const response = await api.runSubdomainScan(target, scanOptions);
-      console.log("Received subdomain scan response:", response);
+      clearInterval(progressInterval);
       
       const endTime = Date.now();
       const duration = `${Math.round((endTime - startTime) / 1000)}s`;
@@ -68,21 +85,10 @@ const SubdomainScanner = ({ onBack }) => {
           status: 'completed',
           duration: duration
         });
-      } else if (response && response.status === 'error') {
-        setError(response.message);
-        
-        // Save failed scan to history
-        historyService.saveScan({
-          scanType: 'subdomain',
-          target: target,
-          scanOptions: scanOptions,
-          error: response.message,
-          status: 'failed',
-          duration: duration
-        });
+      } else {
+        throw new Error(response?.message || 'Scan failed');
       }
     } catch (err) {
-      console.error("Subdomain scan error:", err);
       const errorMessage = err.response?.data?.message || err.message || 'An error occurred during the subdomain scan';
       setError(errorMessage);
       
@@ -97,6 +103,8 @@ const SubdomainScanner = ({ onBack }) => {
       });
     } finally {
       setLoading(false);
+      setProgress('');
+      setCurrentStep(0);
     }
   };
   
@@ -111,319 +119,207 @@ const SubdomainScanner = ({ onBack }) => {
           <div className="scanner-icon subdomain">
             <FaSearch />
           </div>
-          <h2>Subdomain Finder</h2>
+          <div>
+            <h2>Subdomain Scanner</h2>
+            <p className="scanner-description">
+              Discover subdomains using DNS enumeration and Certificate Transparency logs
+            </p>
+          </div>
         </div>
-        <p className="scanner-description">
-          Discover subdomains of a target domain using various enumeration techniques.
-        </p>
         
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="scanner-form">
+          {/* Target Input */}
           <div className="form-group">
             <label className="form-label" htmlFor="target">
-              Target Domain
+              Target Domain *
             </label>
             <input
               id="target"
               type="text"
               value={target}
               onChange={(e) => setTarget(e.target.value)}
-              placeholder="e.g., example.com"
+              placeholder="example.com"
               className="form-input"
               required
             />
-            <p className="form-help">
-              Enter the domain name to discover its subdomains
-            </p>
           </div>
           
+          {/* Wordlist Selection */}
           <div className="form-group">
-            <label className="form-label">DNS Enumeration Wordlist</label>
+            <label className="form-label">Wordlist Size</label>
             <div className="radio-group">
-              <label className="radio-label">
+              <label className="radio-option">
                 <input
                   type="radio"
                   name="wordlist"
-                  value="default"
-                  checked={wordlistOption === 'default'}
+                  value="quick"
+                  checked={wordlistOption === 'quick'}
                   onChange={(e) => setWordlistOption(e.target.value)}
                 />
-                <span>Default Wordlist</span>
+                <span>Quick (9 words) - Fast scan</span>
               </label>
-              <label className="radio-label">
+              <label className="radio-option">
                 <input
                   type="radio"
                   name="wordlist"
-                  value="small"
-                  checked={wordlistOption === 'small'}
+                  value="standard"
+                  checked={wordlistOption === 'standard'}
                   onChange={(e) => setWordlistOption(e.target.value)}
                 />
-                <span>Small (Quick Scan)</span>
+                <span>Standard (35 words) - Balanced</span>
               </label>
-              <label className="radio-label">
+              <label className="radio-option">
                 <input
                   type="radio"
                   name="wordlist"
-                  value="large"
-                  checked={wordlistOption === 'large'}
+                  value="comprehensive"
+                  checked={wordlistOption === 'comprehensive'}
                   onChange={(e) => setWordlistOption(e.target.value)}
                 />
-                <span>Large (Comprehensive)</span>
+                <span>Comprehensive (100+ words) - Thorough</span>
               </label>
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  name="wordlist"
-                  value="custom"
-                  checked={wordlistOption === 'custom'}
-                  onChange={(e) => setWordlistOption(e.target.value)}
-                />
-                <span>Custom Wordlist</span>
-              </label>
-            </div>
-            {wordlistOption === 'custom' && (
-              <textarea
-                value={customWordlist}
-                onChange={(e) => setCustomWordlist(e.target.value)}
-                placeholder="Enter words separated by newlines"
-                className="form-textarea"
-                rows="4"
-              />
-            )}
-          </div>
-          
-          <div className="scan-options">
-            <h3 className="scan-options-title">Scan Options</h3>
-            
-            <div className="checkbox-group">
-              <div className="form-group checkbox-item">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={options.includeWhois}
-                    onChange={() => handleOptionChange('includeWhois')}
-                    className="form-checkbox"
-                  />
-                  <span>Include WHOIS Information</span>
-                </label>
-                <p className="form-help">
-                  Do WHOIS queries to determine network owners and country for each IP
-                </p>
-              </div>
-              
-              <div className="form-group checkbox-item">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={options.detectTechnologies}
-                    onChange={() => handleOptionChange('detectTechnologies')}
-                    className="form-checkbox"
-                  />
-                  <span>Detect Web Technologies</span>
-                </label>
-                <p className="form-help">
-                  Find details about each subdomain: OS, Server, Technology, Web Platform
-                </p>
-              </div>
-              
-              <div className="form-group checkbox-item">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={options.includeUnresolved}
-                    onChange={() => handleOptionChange('includeUnresolved')}
-                    className="form-checkbox"
-                  />
-                  <span>Include Unresolved Subdomains</span>
-                </label>
-                <p className="form-help">
-                  Keep unresolved subdomains in results without IP addresses
-                </p>
-              </div>
-              
-              <div className="form-group checkbox-item">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={options.searchHistorical}
-                    onChange={() => handleOptionChange('searchHistorical')}
-                    className="form-checkbox"
-                  />
-                  <span>Search Historical Subdomains</span>
-                </label>
-                <p className="form-help">
-                  Search in our database of cached historical subdomains
-                </p>
-              </div>
-              
-              <div className="form-group checkbox-item">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={options.interrogateDNS}
-                    onChange={() => handleOptionChange('interrogateDNS')}
-                    className="form-checkbox"
-                  />
-                  <span>Interrogate DNS Records</span>
-                </label>
-                <p className="form-help">
-                  Query various DNS records (NS, MX, TXT, AXFR)
-                </p>
-              </div>
-              
-              <div className="form-group checkbox-item">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={options.useExternalAPIs}
-                    onChange={() => handleOptionChange('useExternalAPIs')}
-                    className="form-checkbox"
-                  />
-                  <span>Use External APIs</span>
-                </label>
-                <p className="form-help">
-                  Request domain information from external API services
-                </p>
-              </div>
-              
-              <div className="form-group checkbox-item">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={options.certificateTransparency}
-                    onChange={() => handleOptionChange('certificateTransparency')}
-                    className="form-checkbox"
-                  />
-                  <span>Certificate Transparency Logs</span>
-                </label>
-                <p className="form-help">
-                  Retrieve and analyze logs from the Certificate Transparency framework
-                </p>
-              </div>
-              
-              <div className="form-group checkbox-item">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={options.searchEngineQueries}
-                    onChange={() => handleOptionChange('searchEngineQueries')}
-                    className="form-checkbox"
-                  />
-                  <span>Search Engine Queries</span>
-                </label>
-                <p className="form-help">
-                  Conduct public search queries on Google and Bing
-                </p>
-              </div>
-              
-              <div className="form-group checkbox-item">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={options.checkSSLCertificates}
-                    onChange={() => handleOptionChange('checkSSLCertificates')}
-                    className="form-checkbox"
-                  />
-                  <span>Check SSL Certificates</span>
-                </label>
-                <p className="form-help">
-                  Search SSL certificates for CN and alternative names
-                </p>
-              </div>
-              
-              <div className="form-group checkbox-item">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={options.reverseDNS}
-                    onChange={() => handleOptionChange('reverseDNS')}
-                    className="form-checkbox"
-                  />
-                  <span>Reverse DNS Lookup</span>
-                </label>
-                <p className="form-help">
-                  Conduct reverse DNS on target IP ranges
-                </p>
-              </div>
-              
-              <div className="form-group checkbox-item">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={options.generatePermutations}
-                    onChange={() => handleOptionChange('generatePermutations')}
-                    className="form-checkbox"
-                  />
-                  <span>Generate Permutations</span>
-                </label>
-                <p className="form-help">
-                  Generate permutations and alterations of found subdomain names
-                </p>
-              </div>
-              
-              <div className="form-group checkbox-item">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={options.cnameLookup}
-                    onChange={() => handleOptionChange('cnameLookup')}
-                    className="form-checkbox"
-                  />
-                  <span>CNAME Lookup</span>
-                </label>
-                <p className="form-help">
-                  Execute CNAME lookup and search its records
-                </p>
-              </div>
             </div>
           </div>
           
+          {/* Advanced Options Toggle */}
+          <div className="form-group">
+            <button
+              type="button"
+              className="advanced-toggle"
+              onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+            >
+              <FaCog /> Advanced Options
+              <span className={`arrow ${showAdvancedOptions ? 'open' : ''}`}>▼</span>
+            </button>
+          </div>
+          
+          {/* Advanced Options */}
+          {showAdvancedOptions && (
+            <div className="advanced-options">
+              <div className="options-grid">
+                <label className="checkbox-option">
+                  <input
+                    type="checkbox"
+                    checked={options.dns_enumeration}
+                    onChange={() => handleOptionChange('dns_enumeration')}
+                  />
+                  <span>DNS Enumeration</span>
+                  <small>Use wordlist to find subdomains</small>
+                </label>
+                
+                <label className="checkbox-option">
+                  <input
+                    type="checkbox"
+                    checked={options.certificate_transparency}
+                    onChange={() => handleOptionChange('certificate_transparency')}
+                  />
+                  <span>Certificate Transparency</span>
+                  <small>Search CT logs for subdomains</small>
+                </label>
+                
+                <label className="checkbox-option">
+                  <input
+                    type="checkbox"
+                    checked={options.dns_records}
+                    onChange={() => handleOptionChange('dns_records')}
+                  />
+                  <span>DNS Records</span>
+                  <small>Query A, MX, NS, TXT records</small>
+                </label>
+                
+                <label className="checkbox-option">
+                  <input
+                    type="checkbox"
+                    checked={options.whois_info}
+                    onChange={() => handleOptionChange('whois_info')}
+                  />
+                  <span>WHOIS Information</span>
+                  <small>Get domain registration details</small>
+                </label>
+                
+                <label className="checkbox-option">
+                  <input
+                    type="checkbox"
+                    checked={options.check_http}
+                    onChange={() => handleOptionChange('check_http')}
+                  />
+                  <span>HTTP Status Check</span>
+                  <small>Check if subdomains are web accessible</small>
+                </label>
+                
+                <label className="checkbox-option">
+                  <input
+                    type="checkbox"
+                    checked={options.include_unresolved}
+                    onChange={() => handleOptionChange('include_unresolved')}
+                  />
+                  <span>Include Unresolved</span>
+                  <small>Show subdomains without IP addresses</small>
+                </label>
+              </div>
+            </div>
+          )}
+          
+          {/* Submit Button */}
           <button
             type="submit"
             className="btn btn-primary btn-scan"
-            disabled={loading}
+            disabled={loading || !target.trim()}
           >
             {loading ? (
-              <span className="loading-text">
-                <FaSpinner className="icon-spin" /> Scanning...
+              <span className="loading-content">
+                <FaSpinner className="icon-spin" />
+                Scanning...
               </span>
             ) : (
-              'Start Subdomain Scan'
+              <>
+                <FaSearch />
+                Start Subdomain Scan
+              </>
             )}
           </button>
         </form>
       </div>
       
+      {/* Progress */}
       {loading && (
         <div className="card scan-progress">
-          <div className="progress-content">
-            <FaSpinner className="icon-spin large-spinner" />
-            <h3>Subdomain Discovery in Progress...</h3>
-            <p>
-              Discovering subdomains using multiple enumeration techniques...
-            </p>
-            <div className="progress-tips">
-              <h4>What we're doing:</h4>
-              <ul>
-                <li>DNS enumeration with wordlists</li>
-                <li>Searching certificate transparency logs</li>
-                <li>Querying external APIs</li>
-                <li>Conducting search engine queries</li>
-                <li>Checking SSL certificates</li>
-                <li>Performing DNS record interrogation</li>
-                <li>Generating subdomain permutations</li>
-              </ul>
+          <div className="progress-container">
+            <div className="progress-icon">
+              <FaSpinner className="icon-spin" />
+            </div>
+            <div className="progress-content">
+              <h3 className="progress-title">Subdomain Discovery in Progress</h3>
+              <p className="progress-text">{progress || 'Starting scan...'}</p>
+              
+              <div className="progress-bar-container">
+                <div className="progress-bar">
+                  <div className="progress-bar-fill"></div>
+                </div>
+              </div>
+              
+              <div className="progress-steps">
+                {['DNS Enumeration', 'Certificate Transparency', 'Processing Results'].map((stepName, index) => (
+                  <div key={index} className={`step-item ${index <= currentStep ? 'active' : ''}`}>
+                    <div className="step-dot"></div>
+                    <span>{stepName}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       )}
       
+      {/* Error */}
       {error && (
         <div className="alert alert-error">
-          <div className="alert-title">Error</div>
+          <strong>Scan Failed</strong>
           <p>{error}</p>
         </div>
       )}
       
+      {/* Results */}
       {results && <SubdomainResults results={results} />}
     </div>
   );

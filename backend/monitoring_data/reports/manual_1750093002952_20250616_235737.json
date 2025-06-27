@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-06-16T23:57:37.237074",
+  "monitor_id": "manual_1750093002952",
+  "url": "https://detik.com",
+  "change_detected": false,
+  "severity": "low",
+  "screenshot_comparison": {},
+  "html_comparison": {},
+  "alerts": []
+}

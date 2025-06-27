@@ -2409,3 +2409,109 @@
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
 }
+/* Technologies Section - Tambahkan di akhir ScannerStyles.css */
+
+.technologies-section {
+    margin-top: 24px;
+}
+
+.technologies-section h4 {
+    color: #2c3e50;
+    margin-bottom: 16px;
+    font-size: 1.25rem;
+}
+
+.technologies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.technology-item {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+    border-left: 4px solid #6f42c1;
+}
+
+.technology-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-left-color: #5a2d91;
+}
+
+.tech-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.tech-header h5 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.tech-version {
+    background: #6f42c1;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.tech-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.tech-category {
+    background: #e9ecef;
+    color: #495057;
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.tech-confidence {
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tech-confidence::before {
+    content: "🎯";
+    font-size: 0.9rem;
+}
+
+/* Technology tab styling */
+.tab-button.tech.active {
+    color: #6f42c1;
+    border-bottom-color: #6f42c1;
+}
+
+.tab-button.tech:hover {
+    color: #5a2d91;
+    background: rgba(111, 66, 193, 0.1);
+}
+
+/* Empty state for technologies */
+.technologies-section .empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #6c757d;
+    background: #f8f9fa;
+    border-radius: 8px;
+}

@@ -10,172 +10,143 @@ from urllib.parse import urlparse
 import re
 import json
 from datetime import datetime
+import time
 
 class SubdomainScanner:
     def __init__(self):
         self.resolver = dns.resolver.Resolver()
-        self.resolver.timeout = 2
-        self.resolver.lifetime = 2
+        self.resolver.timeout = 3
+        self.resolver.lifetime = 3
         
-        # Wordlists
+        # Simplified wordlists
         self.wordlists = {
-            'small': ['www', 'mail', 'ftp', 'localhost', 'webmail', 'smtp', 'pop', 'ns1', 'webdisk', 'ns2', 'cpanel', 'whm', 'autodiscover', 'autoconfig', 'api'],
-            'default': self.load_default_wordlist(),
-            'large': self.load_large_wordlist()
+            'quick': ['www', 'mail', 'ftp', 'api', 'admin', 'blog', 'dev', 'test', 'staging'],
+            'standard': self.load_standard_wordlist(),
+            'comprehensive': self.load_comprehensive_wordlist()
         }
         
-        # External APIs for subdomain discovery
-        self.external_apis = {
-            'crtsh': 'https://crt.sh/?q=%.{}&output=json',
-            'certspotter': 'https://api.certspotter.com/v1/issuances?domain={}&include_subdomains=true&expand=dns_names',
-            'threatcrowd': 'https://www.threatcrowd.org/searchApi/v2/domain/report/?domain={}'
-        }
-        
-    def load_default_wordlist(self):
-        """Load default wordlist - you can load from file"""
-        default_words = [
-            'www', 'mail', 'ftp', 'localhost', 'webmail', 'smtp', 'pop', 'ns1', 'webdisk', 'ns2',
-            'cpanel', 'whm', 'autodiscover', 'autoconfig', 'api', 'blog', 'dev', 'staging', 'test',
-            'portal', 'secure', 'admin', 'login', 'cdn', 'media', 'assets', 'images', 'img',
-            'news', 'upload', 'downloads', 'vpn', 'remote', 'cloud', 'git', 'svn', 'hg', 'db',
-            'mysql', 'postgres', 'redis', 'elastic', 'search', 'app', 'apps', 'mobile', 'm',
-            'help', 'support', 'contact', 'about', 'status', 'stats', 'analytics', 'dashboard'
+    def load_standard_wordlist(self):
+        """Load standard wordlist with commonly found subdomains"""
+        return [
+            'www', 'mail', 'ftp', 'api', 'admin', 'blog', 'dev', 'test', 'staging',
+            'app', 'cdn', 'assets', 'static', 'media', 'images', 'upload', 'download',
+            'portal', 'dashboard', 'panel', 'console', 'secure', 'login', 'auth',
+            'support', 'help', 'docs', 'wiki', 'news', 'store', 'shop', 'payment',
+            'beta', 'alpha', 'demo', 'sandbox', 'vpn', 'remote', 'backup'
         ]
-        return default_words
     
-    def load_large_wordlist(self):
-        """Load large wordlist - in real implementation, load from file"""
-        # Extend default wordlist
-        large_words = self.load_default_wordlist()
+    def load_comprehensive_wordlist(self):
+        """Load comprehensive wordlist"""
+        standard = self.load_standard_wordlist()
+        additional = []
         
-        # Add variations
-        for i in range(1, 10):
-            large_words.extend([
-                f'www{i}', f'mail{i}', f'ns{i}', f'server{i}', f'node{i}',
-                f'api{i}', f'app{i}', f'web{i}', f'dev{i}', f'test{i}'
-            ])
+        # Add numbered variations
+        for i in range(1, 6):
+            additional.extend([f'www{i}', f'mail{i}', f'api{i}', f'dev{i}', f'test{i}'])
         
-        # Add common variations
-        prefixes = ['dev-', 'test-', 'staging-', 'prod-', 'demo-', 'beta-', 'alpha-']
-        base_words = ['app', 'api', 'portal', 'admin', 'console', 'dashboard']
+        # Add environment prefixes
+        envs = ['prod', 'production', 'stage', 'staging', 'dev', 'development', 'test', 'testing']
+        services = ['api', 'app', 'web', 'admin', 'portal']
         
-        for prefix in prefixes:
-            for word in base_words:
-                large_words.append(prefix + word)
-                
-        return list(set(large_words))  # Remove duplicates
+        for env in envs:
+            for service in services:
+                additional.extend([f'{env}-{service}', f'{env}.{service}'])
+        
+        return list(set(standard + additional))
     
     def scan(self, target, options=None):
-        """Main scan function"""
+        """Main scan function with essential features only"""
         if options is None:
             options = {}
             
-        print(f"Starting subdomain scan for {target}")
-        
-        # Clean domain
+        start_time = time.time()
         domain = self.clean_domain(target)
         
         results = {
             'target': domain,
             'timestamp': datetime.now().isoformat(),
             'subdomains': [],
-            'totalFound': 0,
-            'resolvedCount': 0,
-            'uniqueIPs': set(),
-            'technologiesDetected': 0,
-            'dnsRecords': {},
-            'whoisInfo': None,
-            'technologyOverview': {}
+            'summary': {
+                'total_found': 0,
+                'resolved': 0,
+                'unique_ips': 0,
+                'scan_duration': 0
+            },
+            'dns_records': {},
+            'whois_info': None
         }
         
         found_subdomains = set()
         
-        # 1. DNS Enumeration with wordlist
-        if options.get('wordlist'):
-            wordlist_type = options.get('wordlist', 'default')
-            if wordlist_type == 'custom':
-                wordlist = options.get('customWordlist', '').split('\n')
-            else:
-                wordlist = self.wordlists.get(wordlist_type, self.wordlists['default'])
+        try:
+            # 1. DNS Enumeration (Essential)
+            if options.get('dns_enumeration', True):
+                wordlist_type = options.get('wordlist', 'standard')
+                wordlist = self.wordlists.get(wordlist_type, self.wordlists['standard'])
                 
-            print(f"Performing DNS enumeration with {len(wordlist)} words...")
-            dns_subdomains = self.dns_enumeration(domain, wordlist)
-            found_subdomains.update(dns_subdomains)
-        
-        # 2. Certificate Transparency Logs
-        if options.get('certificateTransparency', True):
-            print("Searching Certificate Transparency logs...")
-            ct_subdomains = self.search_certificate_transparency(domain)
-            found_subdomains.update(ct_subdomains)
-        
-        # 3. External APIs
-        if options.get('useExternalAPIs', True):
-            print("Querying external APIs...")
-            api_subdomains = self.query_external_apis(domain)
-            found_subdomains.update(api_subdomains)
-        
-        # 4. Google Search (simulated - in real implementation would use Google API)
-        if options.get('searchEngineQueries', True):
-            print("Performing search engine queries...")
-            search_subdomains = self.search_engines(domain)
-            found_subdomains.update(search_subdomains)
-        
-        # 5. DNS Records interrogation
-        if options.get('interrogateDNS', True):
-            print("Interrogating DNS records...")
-            results['dnsRecords'] = self.interrogate_dns_records(domain)
-        
-        # 6. Generate permutations
-        if options.get('generatePermutations', True):
-            print("Generating subdomain permutations...")
-            permutations = self.generate_permutations(list(found_subdomains), domain)
-            found_subdomains.update(permutations)
-        
-        # Process found subdomains
-        print(f"Processing {len(found_subdomains)} potential subdomains...")
-        with ThreadPoolExecutor(max_workers=50) as executor:
-            futures = []
-            for subdomain in found_subdomains:
-                futures.append(
-                    executor.submit(self.process_subdomain, subdomain, domain, options)
-                )
+                print(f"Performing DNS enumeration with {len(wordlist)} words...")
+                dns_subdomains = self.dns_enumeration(domain, wordlist)
+                found_subdomains.update(dns_subdomains)
             
-            for future in futures:
-                subdomain_info = future.result()
-                if subdomain_info:
-                    results['subdomains'].append(subdomain_info)
-                    if subdomain_info['resolved']:
-                        results['resolvedCount'] += 1
+            # 2. Certificate Transparency (Essential)
+            if options.get('certificate_transparency', True):
+                print("Searching Certificate Transparency logs...")
+                ct_subdomains = self.search_certificate_transparency(domain)
+                found_subdomains.update(ct_subdomains)
+            
+            # 3. DNS Records (Important)
+            if options.get('dns_records', True):
+                print("Querying DNS records...")
+                results['dns_records'] = self.get_dns_records(domain)
+            
+            # 4. WHOIS Info (Optional but useful)
+            if options.get('whois_info', False):
+                print("Getting WHOIS information...")
+                results['whois_info'] = self.get_whois_info(domain)
+            
+            # Process found subdomains
+            print(f"Processing {len(found_subdomains)} potential subdomains...")
+            processed_subdomains = []
+            unique_ips = set()
+            
+            with ThreadPoolExecutor(max_workers=50) as executor:
+                futures = []
+                for subdomain in found_subdomains:
+                    futures.append(
+                        executor.submit(self.process_subdomain, subdomain, options.get('check_http', False))
+                    )
+                
+                for future in futures:
+                    subdomain_info = future.result()
+                    if subdomain_info:
+                        processed_subdomains.append(subdomain_info)
                         if subdomain_info['ip']:
-                            results['uniqueIPs'].add(subdomain_info['ip'])
-        
-        # WHOIS Information
-        if options.get('includeWhois', True):
-            print("Getting WHOIS information...")
-            results['whoisInfo'] = self.get_whois_info(domain)
-        
-        # Technology detection
-        if options.get('detectTechnologies', True):
-            print("Detecting technologies...")
-            self.detect_technologies(results)
-        
-        # Include unresolved subdomains
-        if not options.get('includeUnresolved', False):
-            results['subdomains'] = [s for s in results['subdomains'] if s['resolved']]
-        
-        # Final stats
-        results['totalFound'] = len(results['subdomains'])
-        results['uniqueIPs'] = len(results['uniqueIPs'])
-        
-        return {
-            'status': 'success',
-            'results': results
-        }
+                            unique_ips.add(subdomain_info['ip'])
+            
+            # Sort and filter results
+            processed_subdomains.sort(key=lambda x: x['domain'])
+            
+            # Filter unresolved if requested
+            if not options.get('include_unresolved', True):
+                processed_subdomains = [s for s in processed_subdomains if s['resolved']]
+            
+            results['subdomains'] = processed_subdomains
+            results['summary'] = {
+                'total_found': len(processed_subdomains),
+                'resolved': len([s for s in processed_subdomains if s['resolved']]),
+                'unique_ips': len(unique_ips),
+                'scan_duration': round(time.time() - start_time, 2)
+            }
+            
+            return {'status': 'success', 'results': results}
+            
+        except Exception as e:
+            return {'status': 'error', 'message': str(e)}
     
     def clean_domain(self, domain):
         """Clean and validate domain"""
         domain = domain.lower().strip()
-        if domain.startswith('http://') or domain.startswith('https://'):
+        if domain.startswith(('http://', 'https://')):
             domain = urlparse(domain).netloc
         return domain
     
@@ -197,7 +168,7 @@ class SubdomainScanner:
         return found_subdomains
     
     def check_subdomain(self, subdomain):
-        """Check if subdomain exists"""
+        """Check if subdomain exists via DNS"""
         try:
             answers = self.resolver.resolve(subdomain, 'A')
             return subdomain
@@ -209,50 +180,29 @@ class SubdomainScanner:
         subdomains = set()
         
         try:
-            # Query crt.sh
-            response = requests.get(f'https://crt.sh/?q=%.{domain}&output=json', timeout=10)
+            response = requests.get(
+                f'https://crt.sh/?q=%.{domain}&output=json', 
+                timeout=10,
+                headers={'User-Agent': 'Mozilla/5.0 (Compatible Scanner)'}
+            )
             if response.status_code == 200:
                 data = response.json()
                 for entry in data:
                     name_value = entry.get('name_value', '')
                     names = name_value.split('\n')
                     for name in names:
-                        if name.endswith(domain) and name != domain:
+                        name = name.strip()
+                        if name.endswith(domain) and name != domain and not name.startswith('*'):
                             subdomains.add(name)
         except Exception as e:
-            print(f"Error querying crt.sh: {e}")
+            print(f"Error querying Certificate Transparency: {e}")
         
         return subdomains
     
-    def query_external_apis(self, domain):
-        """Query external APIs for subdomain information"""
-        subdomains = set()
-        
-        # ThreadCrowd API
-        try:
-            response = requests.get(
-                f'https://www.threatcrowd.org/searchApi/v2/domain/report/?domain={domain}',
-                timeout=10
-            )
-            if response.status_code == 200:
-                data = response.json()
-                if data.get('subdomains'):
-                    subdomains.update(data['subdomains'])
-        except Exception as e:
-            print(f"Error querying ThreatCrowd: {e}")
-        
-        return subdomains
-    
-    def search_engines(self, domain):
-        """Search engines for subdomains (simulated)"""
-        # In real implementation, would use search APIs
-        # This is a placeholder
-        return set()
-    
-    def interrogate_dns_records(self, domain):
-        """Get various DNS records"""
+    def get_dns_records(self, domain):
+        """Get essential DNS records"""
         records = {}
-        record_types = ['A', 'AAAA', 'MX', 'NS', 'TXT', 'SOA', 'CNAME']
+        record_types = ['A', 'AAAA', 'MX', 'NS', 'TXT']
         
         for record_type in record_types:
             try:
@@ -263,35 +213,14 @@ class SubdomainScanner:
         
         return records
     
-    def generate_permutations(self, subdomains, domain):
-        """Generate permutations of found subdomains"""
-        permutations = set()
-        
-        for subdomain in subdomains:
-            parts = subdomain.replace(f'.{domain}', '').split('.')
-            if len(parts) > 0:
-                base = parts[-1]
-                
-                # Add number variations
-                for i in range(1, 5):
-                    permutations.add(f"{base}{i}.{domain}")
-                    
-                # Add common prefixes
-                prefixes = ['dev', 'test', 'stage', 'prod', 'beta']
-                for prefix in prefixes:
-                    permutations.add(f"{prefix}-{base}.{domain}")
-                    permutations.add(f"{prefix}.{base}.{domain}")
-        
-        return permutations
-    
-    def process_subdomain(self, subdomain, domain, options):
+    def process_subdomain(self, subdomain, check_http=False):
         """Process individual subdomain"""
         result = {
             'domain': subdomain,
             'ip': None,
             'resolved': False,
-            'technologies': [],
-            'source': 'DNS'
+            'http_status': None,
+            'https_status': None
         }
         
         try:
@@ -300,96 +229,39 @@ class SubdomainScanner:
             if answers:
                 result['ip'] = str(answers[0])
                 result['resolved'] = True
+                
+                # Optional HTTP check
+                if check_http:
+                    result['http_status'] = self.check_http_status(subdomain, 'http')
+                    result['https_status'] = self.check_http_status(subdomain, 'https')
         except:
             pass
-        
-        # Detect technologies if enabled and resolved
-        if result['resolved'] and options.get('detectTechnologies', True):
-            result['technologies'] = self.detect_web_technologies(subdomain)
         
         return result
     
-    def detect_web_technologies(self, subdomain):
-        """Detect web technologies"""
-        technologies = []
-        
+    def check_http_status(self, subdomain, protocol):
+        """Check HTTP/HTTPS status"""
         try:
-            response = requests.get(f'http://{subdomain}', timeout=5)
-            headers = response.headers
-            
-            # Server detection
-            if 'Server' in headers:
-                technologies.append(headers['Server'])
-            
-            # X-Powered-By
-            if 'X-Powered-By' in headers:
-                technologies.append(headers['X-Powered-By'])
-            
-            # Check response content for technology indicators
-            content = response.text.lower()
-            
-            # Common technology indicators
-            tech_indicators = {
-                'WordPress': ['wp-content', 'wp-includes'],
-                'jQuery': ['jquery.min.js', 'jquery-'],
-                'Bootstrap': ['bootstrap.min.css', 'bootstrap.min.js'],
-                'Angular': ['ng-app', 'angular.min.js'],
-                'React': ['react.min.js', 'react-dom.min.js'],
-                'Vue.js': ['vue.min.js', 'v-for=', 'v-if=']
-            }
-            
-            for tech, indicators in tech_indicators.items():
-                for indicator in indicators:
-                    if indicator in content:
-                        technologies.append(tech)
-                        break
+            response = requests.get(
+                f'{protocol}://{subdomain}', 
+                timeout=5, 
+                allow_redirects=False,
+                verify=False
+            )
+            return response.status_code
         except:
-            pass
-        
-        return list(set(technologies))
+            return None
     
     def get_whois_info(self, domain):
         """Get WHOIS information"""
         try:
             w = whois.whois(domain)
             return {
-                'Registrar': w.registrar,
-                'Created': str(w.creation_date[0]) if isinstance(w.creation_date, list) else str(w.creation_date),
-                'Expires': str(w.expiration_date[0]) if isinstance(w.expiration_date, list) else str(w.expiration_date),
-                'Updated': str(w.updated_date[0]) if isinstance(w.updated_date, list) else str(w.updated_date),
-                'Organization': w.org
+                'registrar': str(w.registrar) if w.registrar else 'Unknown',
+                'creation_date': str(w.creation_date[0] if isinstance(w.creation_date, list) else w.creation_date) if w.creation_date else 'Unknown',
+                'expiration_date': str(w.expiration_date[0] if isinstance(w.expiration_date, list) else w.expiration_date) if w.expiration_date else 'Unknown',
+                'organization': str(w.org) if w.org else 'Unknown'
             }
         except Exception as e:
             print(f"Error getting WHOIS info: {e}")
             return None
-    
-    def detect_technologies(self, results):
-        """Aggregate technology detection results"""
-        tech_count = {}
-        
-        for subdomain in results['subdomains']:
-            for tech in subdomain.get('technologies', []):
-                if tech not in tech_count:
-                    tech_count[tech] = 0
-                tech_count[tech] += 1
-        
-        results['technologiesDetected'] = len(tech_count)
-        
-        # Categorize technologies
-        categories = {
-            'Web Servers': ['Apache', 'Nginx', 'IIS', 'LiteSpeed'],
-            'Languages': ['PHP', 'ASP.NET', 'Python', 'Ruby'],
-            'Frameworks': ['WordPress', 'Laravel', 'Django', 'Express'],
-            'Frontend': ['jQuery', 'Bootstrap', 'React', 'Vue.js', 'Angular']
-        }
-        
-        tech_overview = {}
-        for category, techs in categories.items():
-            items = []
-            for tech in techs:
-                if tech in tech_count:
-                    items.append({'name': tech, 'count': tech_count[tech]})
-            if items:
-                tech_overview[category] = items
-        
-        results['technologyOverview'] = tech_overview

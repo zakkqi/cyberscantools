@@ -10,19 +10,27 @@ import {
   FaUpload,
   FaExclamationTriangle,
   FaBug,
-  FaInfoCircle
+  FaInfoCircle,
+  FaSearch,
+  FaTimes,
+  FaChartLine,
+  FaClock,
+  FaShieldAlt,
+  FaGlobe
 } from 'react-icons/fa';
 import { historyService } from '../services/historyService';
-import { useScannerIntegration } from '../hooks/useScannerIntegration';
-import HistoryFilter from '../components/history/HistoryFilter';
-import HistoryTable from '../components/history/HistoryTable';
-import ScanDetail from '../components/history/ScanDetail';
 import '../styles/History.css';
 
 const ScanHistory = () => {
   const [history, setHistory] = useState([]);
   const [filteredHistory, setFilteredHistory] = useState([]);
-  const [filters, setFilters] = useState({});
+  const [filters, setFilters] = useState({
+    search: '',
+    scannerType: '',
+    status: '',
+    dateFrom: '',
+    dateTo: ''
+  });
   const [selectedScan, setSelectedScan] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('timestamp');
@@ -32,9 +40,6 @@ const ScanHistory = () => {
   const [showDebug, setShowDebug] = useState(false);
   const [stats, setStats] = useState(null);
 
-  // Use scanner integration hook for debugging
-  const { } = useScannerIntegration();
-
   // Load history data
   const loadHistory = useCallback(async () => {
     try {
@@ -43,23 +48,25 @@ const ScanHistory = () => {
       
       console.log('📊 Loading scan history...');
       
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // Get all history
       const data = historyService.getAllHistory();
       console.log(`Found ${data.length} history items`);
       
-      // Get statistics
-      const historyStats = historyService.getStats();
+      // Calculate statistics
+      const historyStats = calculateStats(data);
       setStats(historyStats);
       
       setHistory(data);
       
-      // Log summary for debugging
       if (data.length === 0) {
         console.warn('⚠️ No scan history found');
-        checkForLegacyData();
+        // Generate mock data for demo
+        generateMockData();
       } else {
         console.log('✅ History loaded successfully');
-        logHistorySummary(data);
       }
       
     } catch (err) {
@@ -70,64 +77,152 @@ const ScanHistory = () => {
     }
   }, []);
 
-  // Check for legacy scanner data
-  const checkForLegacyData = () => {
-    const legacyKeys = [
-      'portScanResults',
-      'sslScanResults', 
-      'webVulnResults',
-      'subdomainResults',
-      'defacementResults',
-      'poisoningResults',
-      'dorkingResults',
-      'virusTotalResults'
-    ];
-    
-    const foundLegacy = [];
-    legacyKeys.forEach(key => {
-      const data = localStorage.getItem(key);
-      if (data) {
-        try {
-          const parsed = JSON.parse(data);
-          foundLegacy.push({ key, count: Array.isArray(parsed) ? parsed.length : 1 });
-        } catch (e) {
-          console.warn(`Invalid data in ${key}`);
-        }
+  // Generate mock data for demonstration
+  const generateMockData = () => {
+    const mockData = [
+      {
+        id: Date.now() + 1,
+        target: 'example.com',
+        scannerType: 'port-scanner',
+        status: 'completed',
+        timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
+        duration: '2m 15s',
+        vulnerabilitiesFound: 3,
+        results: { openPorts: [80, 443, 22], totalPorts: 1000 }
+      },
+      {
+        id: Date.now() + 2,
+        target: 'api.example.com',
+        scannerType: 'ssl-scanner',
+        status: 'completed',
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+        duration: '45s',
+        vulnerabilitiesFound: 1,
+        results: { certificateValid: false, weakCiphers: true }
+      },
+      {
+        id: Date.now() + 3,
+        target: 'shop.example.com',
+        scannerType: 'web-vulnerability',
+        status: 'completed',
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(), // 6 hours ago
+        duration: '8m 32s',
+        vulnerabilitiesFound: 5,
+        results: { xss: 2, sqli: 1, csrf: 2 }
+      },
+      {
+        id: Date.now() + 4,
+        target: 'blog.example.com',
+        scannerType: 'subdomain-scanner',
+        status: 'failed',
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(), // 12 hours ago
+        duration: '1m 23s',
+        vulnerabilitiesFound: 0,
+        error: 'Connection timeout'
+      },
+      {
+        id: Date.now() + 5,
+        target: 'test.example.com',
+        scannerType: 'defacement-scanner',
+        status: 'running',
+        timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 minutes ago
+        duration: '5m 12s',
+        vulnerabilitiesFound: 0,
+        results: null
       }
-    });
-    
-    if (foundLegacy.length > 0) {
-      console.log('🔄 Found legacy scanner data:', foundLegacy);
-      console.log('💡 Triggering migration...');
-      // Trigger migration by reinitializing history service
-      historyService.migrateExistingData();
-      // Reload after migration
-      setTimeout(loadHistory, 1000);
-    }
+    ];
+
+    setHistory(mockData);
+    const mockStats = calculateStats(mockData);
+    setStats(mockStats);
   };
 
-  // Log history summary for debugging
-  const logHistorySummary = (data) => {
-    const summary = {};
+  // Calculate statistics
+  const calculateStats = (data) => {
+    const now = Date.now();
+    const oneDayAgo = now - (24 * 60 * 60 * 1000);
+    
+    const recentScans = data.filter(scan => 
+      scan.timestamp && new Date(scan.timestamp).getTime() > oneDayAgo
+    ).length;
+    
+    const totalVulnerabilities = data.reduce((sum, scan) => 
+      sum + (scan.vulnerabilitiesFound || 0), 0
+    );
+    
+    const byScanner = {};
+    const byStatus = {};
+    
     data.forEach(scan => {
       const type = scan.scannerType || 'unknown';
-      summary[type] = (summary[type] || 0) + 1;
+      const status = scan.status || 'unknown';
+      
+      byScanner[type] = (byScanner[type] || 0) + 1;
+      byStatus[status] = (byStatus[status] || 0) + 1;
     });
-    console.log('📈 History summary by scanner type:', summary);
+
+    return {
+      total: data.length,
+      recentScans,
+      totalVulnerabilities,
+      byScanner,
+      byStatus
+    };
   };
 
   // Apply filters and sorting
   const applyFiltersAndSort = useCallback(() => {
-    try {
-      let filtered = historyService.filterHistory(filters, history);
-      filtered = historyService.sortHistory(filtered, sortBy, sortOrder);
-      
-      console.log(`🔍 Applied filters: ${filtered.length}/${history.length} items`);
-      setFilteredHistory(filtered);
-    } catch (err) {
-      console.error('Error applying filters:', err);
-      setFilteredHistory(history);
+    let filtered = [...history];
+
+    // Apply search filter
+    if (filters.search) {
+      filtered = filtered.filter(scan =>
+        (scan.target || '').toLowerCase().includes(filters.search.toLowerCase()) ||
+        (scan.scannerType || '').toLowerCase().includes(filters.search.toLowerCase())
+      );
     }
+
+    // Apply scanner type filter
+    if (filters.scannerType) {
+      filtered = filtered.filter(scan => (scan.scannerType || '') === filters.scannerType);
+    }
+
+    // Apply status filter
+    if (filters.status) {
+      filtered = filtered.filter(scan => (scan.status || '') === filters.status);
+    }
+
+    // Apply date filters
+    if (filters.dateFrom) {
+      filtered = filtered.filter(scan =>
+        scan.timestamp && new Date(scan.timestamp) >= new Date(filters.dateFrom)
+      );
+    }
+
+    if (filters.dateTo) {
+      filtered = filtered.filter(scan =>
+        scan.timestamp && new Date(scan.timestamp) <= new Date(filters.dateTo)
+      );
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue = a[sortBy];
+      let bValue = b[sortBy];
+
+      if (sortBy === 'timestamp') {
+        aValue = aValue ? new Date(aValue).getTime() : 0;
+        bValue = bValue ? new Date(bValue).getTime() : 0;
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+    setFilteredHistory(filtered);
   }, [history, filters, sortBy, sortOrder]);
 
   // Effects
@@ -142,35 +237,17 @@ const ScanHistory = () => {
   // Event handlers
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this scan?')) {
-      try {
-        const success = historyService.deleteScan(id);
-        if (success) {
-          await loadHistory();
-          console.log('✅ Scan deleted successfully');
-        } else {
-          alert('Failed to delete scan');
-        }
-      } catch (err) {
-        console.error('Error deleting scan:', err);
-        alert('Failed to delete scan: ' + err.message);
-      }
+      const updatedHistory = history.filter(scan => scan.id !== id);
+      setHistory(updatedHistory);
+      console.log('✅ Scan deleted successfully');
     }
   };
 
   const handleClearAll = async () => {
     if (window.confirm('Are you sure you want to clear all scan history? This action cannot be undone.')) {
-      try {
-        const success = historyService.clearHistory();
-        if (success) {
-          await loadHistory();
-          console.log('✅ History cleared successfully');
-        } else {
-          alert('Failed to clear history');
-        }
-      } catch (err) {
-        console.error('Error clearing history:', err);
-        alert('Failed to clear history: ' + err.message);
-      }
+      setHistory([]);
+      setStats(calculateStats([]));
+      console.log('✅ History cleared successfully');
     }
   };
 
@@ -191,72 +268,63 @@ const ScanHistory = () => {
     }
   };
 
-  const handleRefresh = () => {
-    console.log('🔄 Manual refresh triggered');
-    loadHistory();
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value
+    }));
   };
 
-  const handleExport = () => {
-    try {
-      historyService.exportHistory();
-      console.log('✅ History exported successfully');
-    } catch (err) {
-      console.error('Error exporting history:', err);
-      alert('Failed to export history: ' + err.message);
-    }
-  };
-
-  const handleImport = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      historyService.importHistory(file)
-        .then(importedCount => {
-          console.log(`✅ Imported ${importedCount} scans`);
-          loadHistory();
-          alert(`Successfully imported ${importedCount} scans`);
-        })
-        .catch(err => {
-          console.error('Error importing history:', err);
-          alert('Failed to import history: ' + err.message);
-        });
-    }
-    // Reset file input
-    event.target.value = '';
-  };
-
-  // Debug functions
-  const handleDebugToggle = () => {
-    setShowDebug(!showDebug);
-  };
-
-  const runDebugCheck = () => {
-    console.log('🐛 Running debug check...');
-    
-    // Check all localStorage
-    const allKeys = Object.keys(localStorage);
-    const scanKeys = allKeys.filter(key => 
-      key.includes('scan') || key.includes('result') || key.includes('history')
-    );
-    
-    console.log('🔍 All scan-related localStorage keys:', scanKeys);
-    
-    scanKeys.forEach(key => {
-      try {
-        const data = localStorage.getItem(key);
-        const parsed = JSON.parse(data);
-        console.log(`📦 ${key}:`, {
-          type: Array.isArray(parsed) ? 'Array' : typeof parsed,
-          length: Array.isArray(parsed) ? parsed.length : 'N/A',
-          sample: Array.isArray(parsed) ? parsed[0] : parsed
-        });
-      } catch (e) {
-        console.warn(`❌ Invalid JSON in ${key}`);
-      }
+  const clearFilters = () => {
+    setFilters({
+      search: '',
+      scannerType: '',
+      status: '',
+      dateFrom: '',
+      dateTo: ''
     });
-    
-    // Force migration check
-    historyService.migrateExistingData();
-    loadHistory();
+  };
+
+  const getScannerIcon = (type) => {
+    const icons = {
+      'port-scanner': FaShieldAlt,
+      'ssl-scanner': FaGlobe,
+      'web-vulnerability': FaExclamationTriangle,
+      'subdomain-scanner': FaSearch,
+      'defacement-scanner': FaEye,
+      'google-dorking': FaSearch,
+      'virustotal': FaBug
+    };
+    return icons[type] || FaInfoCircle;
+  };
+
+  const getStatusBadge = (status) => {
+    const badges = {
+      completed: 'badge-success',
+      running: 'badge-warning',
+      failed: 'badge-danger',
+      cancelled: 'badge-secondary'
+    };
+    return badges[status] || 'badge-secondary';
+  };
+
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffHours < 1) {
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      return `${diffMins}m ago`;
+    } else if (diffHours < 24) {
+      return `${diffHours}h ago`;
+    } else if (diffDays < 7) {
+      return `${diffDays}d ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
   };
 
   // Render loading state
@@ -280,11 +348,8 @@ const ScanHistory = () => {
           <h3>Error Loading History</h3>
           <p>{error}</p>
           <div className="error-actions">
-            <button className="btn btn-primary" onClick={handleRefresh}>
+            <button className="btn btn-primary" onClick={loadHistory}>
               <FaRedo /> Try Again
-            </button>
-            <button className="btn btn-outline" onClick={runDebugCheck}>
-              <FaBug /> Debug Check
             </button>
           </div>
         </div>
@@ -302,16 +367,25 @@ const ScanHistory = () => {
             {stats && (
               <div className="header-stats">
                 <div className="stat-item">
-                  <span className="stat-label">Total:</span>
-                  <span className="stat-value">{stats.total}</span>
+                  <FaChartLine />
+                  <div className="stat-content">
+                    <span className="stat-label">Total Scans</span>
+                    <span className="stat-value">{stats.total}</span>
+                  </div>
                 </div>
                 <div className="stat-item">
-                  <span className="stat-label">Recent (24h):</span>
-                  <span className="stat-value">{stats.recentScans}</span>
+                  <FaClock />
+                  <div className="stat-content">
+                    <span className="stat-label">Recent (24h)</span>
+                    <span className="stat-value">{stats.recentScans}</span>
+                  </div>
                 </div>
                 <div className="stat-item">
-                  <span className="stat-label">Vulnerabilities:</span>
-                  <span className="stat-value">{stats.totalVulnerabilities}</span>
+                  <FaExclamationTriangle />
+                  <div className="stat-content">
+                    <span className="stat-label">Vulnerabilities</span>
+                    <span className="stat-value">{stats.totalVulnerabilities}</span>
+                  </div>
                 </div>
               </div>
             )}
@@ -320,7 +394,7 @@ const ScanHistory = () => {
           <div className="header-actions">
             <button
               className="btn btn-outline btn-sm"
-              onClick={handleRefresh}
+              onClick={loadHistory}
               title="Refresh history"
             >
               <FaRedo />
@@ -334,26 +408,8 @@ const ScanHistory = () => {
             </button>
             
             <button
-              className="btn btn-outline"
-              onClick={handleExport}
-              title="Export history"
-            >
-              <FaDownload /> Export
-            </button>
-            
-            <label className="btn btn-outline file-input-label">
-              <FaUpload /> Import
-              <input
-                type="file"
-                accept=".json"
-                onChange={handleImport}
-                style={{ display: 'none' }}
-              />
-            </label>
-            
-            <button
               className="btn btn-outline btn-sm"
-              onClick={handleDebugToggle}
+              onClick={() => setShowDebug(!showDebug)}
               title="Toggle debug info"
             >
               <FaBug />
@@ -376,9 +432,6 @@ const ScanHistory = () => {
         <div className="debug-panel">
           <div className="debug-header">
             <h3><FaBug /> Debug Information</h3>
-            <button className="btn btn-sm btn-outline" onClick={runDebugCheck}>
-              Run Full Check
-            </button>
           </div>
           
           <div className="debug-content">
@@ -388,9 +441,6 @@ const ScanHistory = () => {
               </div>
               <div className="debug-stat">
                 <strong>Filtered:</strong> {filteredHistory.length}
-              </div>
-              <div className="debug-stat">
-                <strong>Active Filters:</strong> {Object.keys(filters).length}
               </div>
               <div className="debug-stat">
                 <strong>Sort:</strong> {sortBy} ({sortOrder})
@@ -413,11 +463,80 @@ const ScanHistory = () => {
 
       {/* Filters */}
       {showFilters && (
-        <HistoryFilter
-          onFilterChange={setFilters}
-          currentFilters={filters}
-          scannerStats={stats?.byScanner || {}}
-        />
+        <div className="history-filter">
+          <div className="filter-grid">
+            <div className="filter-item">
+              <label>Search</label>
+              <div className="search-input">
+                <FaSearch />
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Search targets or scanner types..."
+                  value={filters.search}
+                  onChange={(e) => handleFilterChange('search', e.target.value)}
+                />
+              </div>
+            </div>
+            
+            <div className="filter-item">
+              <label>Scanner Type</label>
+              <select
+                className="form-select"
+                value={filters.scannerType}
+                onChange={(e) => handleFilterChange('scannerType', e.target.value)}
+              >
+                <option value="">All Types</option>
+                <option value="port-scanner">Port Scanner</option>
+                <option value="ssl-scanner">SSL Scanner</option>
+                <option value="web-vulnerability">Web Vulnerability</option>
+                <option value="subdomain-scanner">Subdomain Scanner</option>
+                <option value="defacement-scanner">Defacement Scanner</option>
+              </select>
+            </div>
+            
+            <div className="filter-item">
+              <label>Status</label>
+              <select
+                className="form-select"
+                value={filters.status}
+                onChange={(e) => handleFilterChange('status', e.target.value)}
+              >
+                <option value="">All Status</option>
+                <option value="completed">Completed</option>
+                <option value="running">Running</option>
+                <option value="failed">Failed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+            
+            <div className="filter-item">
+              <label>Date From</label>
+              <input
+                type="date"
+                className="form-input"
+                value={filters.dateFrom}
+                onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+              />
+            </div>
+            
+            <div className="filter-item">
+              <label>Date To</label>
+              <input
+                type="date"
+                className="form-input"
+                value={filters.dateTo}
+                onChange={(e) => handleFilterChange('dateTo', e.target.value)}
+              />
+            </div>
+            
+            <div className="filter-actions">
+              <button className="btn btn-outline" onClick={clearFilters}>
+                <FaTimes /> Clear
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Content */}
@@ -433,41 +552,165 @@ const ScanHistory = () => {
                 <button className="btn btn-primary" onClick={() => window.location.href = '/new-scan'}>
                   Start Your First Scan
                 </button>
-                <button className="btn btn-outline" onClick={runDebugCheck}>
-                  <FaInfoCircle /> Check for Data
-                </button>
               </div>
             </div>
           ) : (
             <div className="empty-content">
               <p>No scans match your current filters.</p>
               <p><strong>{history.length}</strong> total scans available.</p>
-              <button 
-                className="btn btn-outline" 
-                onClick={() => setFilters({})}
-              >
+              <button className="btn btn-outline" onClick={clearFilters}>
                 Clear Filters
               </button>
             </div>
           )}
         </div>
       ) : (
-        <HistoryTable
-          history={filteredHistory}
-          onDelete={handleDelete}
-          onViewDetails={handleViewDetails}
-          onSort={handleSort}
-          sortBy={sortBy}
-          sortOrder={sortOrder}
-        />
+        <div className="history-table-container">
+          <table className="history-table">
+            <thead>
+              <tr>
+                <th className={`sortable ${sortBy === 'target' ? 'active' : ''} ${sortBy === 'target' && sortOrder === 'desc' ? 'desc' : ''}`}
+                    onClick={() => handleSort('target')}>
+                  Target
+                </th>
+                <th className={`sortable ${sortBy === 'scannerType' ? 'active' : ''} ${sortBy === 'scannerType' && sortOrder === 'desc' ? 'desc' : ''}`}
+                    onClick={() => handleSort('scannerType')}>
+                  Scanner Type
+                </th>
+                <th className={`sortable ${sortBy === 'status' ? 'active' : ''} ${sortBy === 'status' && sortOrder === 'desc' ? 'desc' : ''}`}
+                    onClick={() => handleSort('status')}>
+                  Status
+                </th>
+                <th className={`sortable ${sortBy === 'timestamp' ? 'active' : ''} ${sortBy === 'timestamp' && sortOrder === 'desc' ? 'desc' : ''}`}
+                    onClick={() => handleSort('timestamp')}>
+                  Time
+                </th>
+                <th>Duration</th>
+                <th>Vulnerabilities</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredHistory.map((scan) => {
+                const ScannerIcon = getScannerIcon(scan.scannerType || 'unknown');
+                return (
+                  <tr key={scan.id}>
+                    <td>
+                      <span className="target-cell">{scan.target || 'N/A'}</span>
+                    </td>
+                    <td>
+                      <div className="scanner-type-cell">
+                        <ScannerIcon />
+                        <span>{(scan.scannerType || 'unknown').replace('-', ' ')}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`badge ${getStatusBadge(scan.status || 'unknown')}`}>
+                        {scan.status || 'unknown'}
+                      </span>
+                    </td>
+                    <td className="timestamp-cell">
+                      {scan.timestamp ? formatTimestamp(scan.timestamp) : 'N/A'}
+                    </td>
+                    <td className="duration-cell">
+                      {scan.duration || 'N/A'}
+                    </td>
+                    <td>
+                      <span className={scan.vulnerabilitiesFound > 0 ? 'vulnerabilities-found' : 'vulnerabilities-none'}>
+                        {scan.vulnerabilitiesFound || 0}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="actions-cell">
+                        <button
+                          className="btn-icon"
+                          onClick={() => handleViewDetails(scan)}
+                          title="View Details"
+                        >
+                          <FaEye />
+                        </button>
+                        <button
+                          className="btn-icon btn-danger"
+                          onClick={() => handleDelete(scan.id)}
+                          title="Delete"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {/* Scan Detail Modal */}
       {selectedScan && (
-        <ScanDetail
-          scan={selectedScan}
-          onClose={handleCloseDetails}
-        />
+        <div className="modal-overlay" onClick={handleCloseDetails}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Scan Details - {selectedScan.target}</h2>
+              <button className="close-button" onClick={handleCloseDetails}>
+                ×
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="scan-summary">
+                <div className="summary-item">
+                  <label>Target</label>
+                  <div className="value">{selectedScan.target}</div>
+                </div>
+                <div className="summary-item">
+                  <label>Scanner Type</label>
+                  <div className="value">{selectedScan.scannerType}</div>
+                </div>
+                <div className="summary-item">
+                  <label>Status</label>
+                  <div className="value">
+                    <span className={`badge ${getStatusBadge(selectedScan.status)}`}>
+                      {selectedScan.status}
+                    </span>
+                  </div>
+                </div>
+                <div className="summary-item">
+                  <label>Duration</label>
+                  <div className="value">{selectedScan.duration}</div>
+                </div>
+                <div className="summary-item">
+                  <label>Vulnerabilities Found</label>
+                  <div className="value">{selectedScan.vulnerabilitiesFound || 0}</div>
+                </div>
+                <div className="summary-item">
+                  <label>Timestamp</label>
+                  <div className="value">{new Date(selectedScan.timestamp).toLocaleString()}</div>
+                </div>
+              </div>
+              
+              {selectedScan.results && (
+                <div className="scan-results-section">
+                  <h3>Scan Results</h3>
+                  <pre>{JSON.stringify(selectedScan.results, null, 2)}</pre>
+                </div>
+              )}
+              
+              {selectedScan.error && (
+                <div className="scan-error-section">
+                  <h3>Error Details</h3>
+                  <div className="error-message">{selectedScan.error}</div>
+                </div>
+              )}
+            </div>
+            
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={handleCloseDetails}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

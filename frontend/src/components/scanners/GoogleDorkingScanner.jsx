@@ -1,6 +1,7 @@
+// frontend/src/components/scanners/GoogleDorkingScanner.jsx - WITH BACK BUTTON
 import React, { useState, useEffect } from 'react';
 import { Button, Form, Input, Card, List, Typography, Tag, Alert, Space, Tabs, Row, Col, Statistic, Divider, Progress, Spin, Slider, InputNumber } from 'antd';
-import { LoadingOutlined } from '@ant-design/icons';
+import { LoadingOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import '../../styles/GoogleDorkingScanner.css';
 
@@ -8,7 +9,7 @@ const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { TabPane } = Tabs;
 
-const GoogleDorkingScanner = () => {
+const GoogleDorkingScanner = ({ onBack }) => {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentDork, setCurrentDork] = useState('');
@@ -292,6 +293,20 @@ const GoogleDorkingScanner = () => {
 
   return (
     <div className="google-dorking-scanner">
+      {/* Back Button */}
+      {onBack && (
+        <div className="back-button-container" style={{ marginBottom: '20px' }}>
+          <Button 
+            type="default" 
+            icon={<ArrowLeftOutlined />} 
+            onClick={onBack}
+            size="large"
+          >
+            Back to scanner selection
+          </Button>
+        </div>
+      )}
+
       <Title level={2}>Google Dorking Scanner</Title>
       <Paragraph>
         Find exposed information using Google search operators

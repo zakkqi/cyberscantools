@@ -1,14 +1,13 @@
-// frontend/src/components/scanners/VirusTotalScanner.jsx
-
+// frontend/src/components/scanners/VirusTotalScanner.jsx 
 import React, { useState, useEffect } from 'react';
 import { 
-  Button, Form, Input, Upload, message, Card, Spin, Tabs, Alert, 
-  Progress, Divider, Table, Tag, Row, Col, Tooltip, Space 
+  Button, Form, Input, Upload, message, Card, Spin, Alert, 
+  Progress, Space, Tag, Tooltip, Row, Col, Divider, Typography 
 } from 'antd';
 import { 
-  UploadOutlined, LinkOutlined, SafetyOutlined, CheckCircleOutlined, 
-  CloseCircleOutlined, WarningOutlined, QuestionOutlined, 
-  FileTextOutlined, GlobalOutlined, ReloadOutlined, InfoCircleOutlined 
+  UploadOutlined, LinkOutlined, SafetyOutlined, 
+  FileTextOutlined, GlobalOutlined, ReloadOutlined, SearchOutlined,
+  InfoCircleOutlined, CloudUploadOutlined, ScanOutlined, ArrowLeftOutlined
 } from '@ant-design/icons';
 
 // Import API utility
@@ -17,13 +16,21 @@ import api from '../../utils/api';
 // Import history service
 import { historyService } from '../../services/historyService';
 
-const VirusTotalScanner = () => {
+// Import the VirusTotal-style results component
+import VirusTotalResults from './VirusTotalResults';
+
+// Import CSS
+import '../../styles/VirusTotalScanner.css';
+
+const { Title, Paragraph, Text } = Typography;
+
+const VirusTotalScanner = ({ onBack }) => {
   const [form] = Form.useForm();
   
   // State management
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
-  const [activeTab, setActiveTab] = useState('url');
+  const [activeTab, setActiveTab] = useState('file');
   const [fileList, setFileList] = useState([]);
   const [analysisId, setAnalysisId] = useState(null);
   const [results, setResults] = useState(null);
@@ -31,6 +38,8 @@ const VirusTotalScanner = () => {
   const [target, setTarget] = useState(null);
   const [pollingInterval, setPollingInterval] = useState(null);
   const [progress, setProgress] = useState(0);
+  const [startTime, setStartTime] = useState(null);
+  const [searchType, setSearchType] = useState(null);
 
   // Cleanup pada unmount
   useEffect(() => {
@@ -48,48 +57,97 @@ const VirusTotalScanner = () => {
     }
   }, [analysisId, scanning]);
 
+  // Fungsi untuk mendeteksi tipe input
+  const detectInputType = (input) => {
+    const cleanInput = input.trim().toLowerCase();
+    
+    // Hash patterns
+    const md5Pattern = /^[a-f0-9]{32}$/i;
+    const sha1Pattern = /^[a-f0-9]{40}$/i;
+    const sha256Pattern = /^[a-f0-9]{64}$/i;
+    
+    // IP patterns
+    const ipv4Pattern = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    const ipv6Pattern = /^(?:[0-9a-f]{1,4}:){7}[0-9a-f]{1,4}$/i;
+    
+    // URL pattern
+    const urlPattern = /^https?:\/\/.+/i;
+    
+    // Domain pattern
+    const domainPattern = /^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$/;
+    
+    if (md5Pattern.test(cleanInput)) return { type: 'md5', value: cleanInput };
+    if (sha1Pattern.test(cleanInput)) return { type: 'sha1', value: cleanInput };
+    if (sha256Pattern.test(cleanInput)) return { type: 'sha256', value: cleanInput };
+    if (urlPattern.test(input)) return { type: 'url', value: input };
+    if (ipv4Pattern.test(cleanInput)) return { type: 'ip', value: cleanInput };
+    if (ipv6Pattern.test(cleanInput)) return { type: 'ipv6', value: cleanInput };
+    if (domainPattern.test(cleanInput)) return { type: 'domain', value: cleanInput };
+    
+    return { type: 'unknown', value: input };
+  };
+
+  // Fungsi untuk normalisasi URL (opsional, hanya untuk tampilan)
+  const normalizeUrl = (url) => {
+    if (!url) return url;
+    
+    const trimmedUrl = url.trim();
+    
+    // Jika sudah ada protokol, return as is
+    if (trimmedUrl.match(/^https?:\/\//i)) {
+      return trimmedUrl;
+    }
+    
+    // Jika tidak ada protokol dan terlihat seperti URL, tambahkan https://
+    if (trimmedUrl.includes('.') && !trimmedUrl.includes(' ')) {
+      return `https://${trimmedUrl}`;
+    }
+    
+    // Untuk input lainnya (hash, IP, dll), return as is
+    return trimmedUrl;
+  };
+
   // Scan URL dengan VirusTotal
   const scanUrl = async (values) => {
-    const startTime = Date.now();
-    
     try {
       setLoading(true);
       setError(null);
       setResults(null);
-      setTarget(values.url);
+      
+      // Gunakan input user langsung tanpa modifikasi
+      const userInput = values.url.trim();
+      setTarget(userInput);
       setProgress(0);
       
-      message.loading({ content: 'Mengirim URL untuk analisis...', key: 'scanning' });
+      message.loading({ content: 'Submitting URL for analysis...', key: 'scanning' });
       
-      const response = await api.runVirusTotalUrlScan(values.url);
+      const response = await api.runVirusTotalUrlScan(userInput);
       
       if (response.success) {
-        message.success({ content: 'URL berhasil dikirim untuk analisis', key: 'scanning' });
+        message.success({ content: 'URL submitted successfully', key: 'scanning' });
         setAnalysisId(response.analysis_id);
         setScanning(true);
         setProgress(10);
       } else {
-        message.error({ content: `Gagal: ${response.message}`, key: 'scanning' });
-        setError(response.message || 'Gagal memindai URL');
+        message.error({ content: `Failed: ${response.message}`, key: 'scanning' });
+        setError(response.message || 'Failed to scan URL');
       }
     } catch (error) {
       console.error('URL scan error:', error);
-      message.error({ content: `Terjadi kesalahan: ${error.message}`, key: 'scanning' });
-      setError(error.message || 'Terjadi kesalahan saat memindai URL');
+      message.error({ content: `Error occurred: ${error.message}`, key: 'scanning' });
+      setError(error.message || 'Error occurred while scanning URL');
     } finally {
       setLoading(false);
     }
   };
 
-  // Scan file dengan VirusTotal - FIXED: Proper file handling
+  // Scan file dengan VirusTotal
   const scanFile = async () => {
     if (fileList.length === 0) {
-      message.error('Silakan pilih file terlebih dahulu');
+      message.error('Please select a file first');
       return;
     }
 
-    const startTime = Date.now();
-    
     try {
       setLoading(true);
       setError(null);
@@ -97,37 +155,120 @@ const VirusTotalScanner = () => {
       setTarget(fileList[0].name);
       setProgress(0);
       
-      message.loading({ content: 'Mengirim file untuk analisis...', key: 'scanning' });
+      message.loading({ content: 'Uploading file for analysis...', key: 'scanning' });
       
-      // FIXED: Use the original file object, not originFileObj
       const fileToScan = fileList[0].originFileObj || fileList[0];
       
-      // Additional validation
       if (!fileToScan) {
-        throw new Error('File tidak valid');
+        throw new Error('Invalid file');
       }
-      
-      console.log('File to scan:', {
-        name: fileToScan.name,
-        size: fileToScan.size,
-        type: fileToScan.type
-      });
       
       const response = await api.runVirusTotalFileScan(fileToScan);
       
       if (response.success) {
-        message.success({ content: 'File berhasil dikirim untuk analisis', key: 'scanning' });
+        message.success({ content: 'File uploaded successfully', key: 'scanning' });
         setAnalysisId(response.analysis_id);
         setScanning(true);
         setProgress(10);
       } else {
-        message.error({ content: `Gagal: ${response.message}`, key: 'scanning' });
-        setError(response.message || 'Gagal memindai file');
+        message.error({ content: `Failed: ${response.message}`, key: 'scanning' });
+        setError(response.message || 'Failed to scan file');
       }
     } catch (error) {
       console.error('File scan error:', error);
-      message.error({ content: `Terjadi kesalahan: ${error.message}`, key: 'scanning' });
-      setError(error.message || 'Terjadi kesalahan saat memindai file');
+      message.error({ content: `Error occurred: ${error.message}`, key: 'scanning' });
+      setError(error.message || 'Error occurred while scanning file');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Search function untuk hash, domain, IP - Universal approach
+  const searchQuery = async (values) => {
+    try {
+      setLoading(true);
+      setError(null);
+      setResults(null);
+      setProgress(0);
+      
+      const queryInput = values.query;
+      const detectedType = detectInputType(queryInput);
+      setSearchType(detectedType.type);
+      setTarget(detectedType.value);
+      
+      message.loading({ content: `Searching for ${detectedType.type}: ${detectedType.value}...`, key: 'scanning' });
+      
+      let response;
+      
+      // Try universal search first (if backend supports it)
+      try {
+        if (api.runVirusTotalSearch) {
+          response = await api.runVirusTotalSearch(detectedType.value);
+        } else {
+          throw new Error('Universal search not available');
+        }
+      } catch (universalError) {
+        console.log('Universal search failed, trying specific methods:', universalError);
+        
+        // Fallback to specific methods based on detected type
+        try {
+          switch (detectedType.type) {
+            case 'url':
+              response = await api.runVirusTotalUrlScan(detectedType.value);
+              break;
+            case 'domain':
+              if (api.runVirusTotalDomainScan) {
+                response = await api.runVirusTotalDomainScan(detectedType.value);
+              } else {
+                // Try as URL with https prefix
+                const domainAsUrl = detectedType.value.includes('://') ? detectedType.value : `https://${detectedType.value}`;
+                response = await api.runVirusTotalUrlScan(domainAsUrl);
+              }
+              break;
+            case 'ip':
+            case 'ipv6':
+              if (api.runVirusTotalIpScan) {
+                response = await api.runVirusTotalIpScan(detectedType.value);
+              } else {
+                // Try as URL with http prefix
+                const ipAsUrl = `http://${detectedType.value}`;
+                response = await api.runVirusTotalUrlScan(ipAsUrl);
+              }
+              break;
+            case 'md5':
+            case 'sha1':
+            case 'sha256':
+              if (api.runVirusTotalHashScan) {
+                response = await api.runVirusTotalHashScan(detectedType.value);
+              } else {
+                throw new Error('Hash scanning not implemented. Please use the URL scan for hash lookup or contact support.');
+              }
+              break;
+            default:
+              // For unknown types, try URL scan
+              response = await api.runVirusTotalUrlScan(detectedType.value);
+          }
+        } catch (specificError) {
+          console.error('Specific scan method failed:', specificError);
+          throw new Error(`Unable to scan ${detectedType.type}: ${specificError.message}`);
+        }
+      }
+      
+      if (response && response.success) {
+        message.success({ content: `${detectedType.type} search submitted successfully`, key: 'scanning' });
+        setAnalysisId(response.analysis_id);
+        setScanning(true);
+        setProgress(10);
+      } else {
+        const errorMsg = response?.message || `Failed to search ${detectedType.type}`;
+        message.error({ content: `Failed: ${errorMsg}`, key: 'scanning' });
+        setError(errorMsg);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      const errorMessage = error.message || 'Error occurred while searching';
+      message.error({ content: `Error occurred: ${errorMessage}`, key: 'scanning' });
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -135,60 +276,68 @@ const VirusTotalScanner = () => {
 
   // Fungsi polling untuk mengecek hasil analisis
   const startPolling = (id) => {
-    // Clear polling interval sebelumnya
     if (pollingInterval) {
       clearInterval(pollingInterval);
     }
 
     let pollCount = 0;
-    const maxPolls = 60; // Maximum 5 minutes (60 * 5 seconds)
+    const maxPolls = 60;
 
-    // Mulai polling baru
     const interval = setInterval(async () => {
       try {
         pollCount++;
-        setProgress(Math.min(10 + (pollCount * 1.5), 95)); // Gradual progress
+        setProgress(Math.min(10 + (pollCount * 1.5), 95));
         
         const response = await api.getVirusTotalScanStatus(id);
         
         if (response.success) {
           if (response.status === 'completed') {
-            setResults(response.results);
+            const realResults = {
+              malicious: response.results.malicious || 0,
+              suspicious: response.results.suspicious || 0,
+              harmless: response.results.harmless || 0,
+              undetected: response.results.undetected || 0,
+              total_engines: response.results.total_engines || 0,
+              scan_date: response.results.scan_date || Math.floor(Date.now() / 1000),
+              target: target,
+              scan_id: id,
+              search_type: searchType || activeTab,
+              detailed_results: response.results.detailed_results || response.results.scans || {}
+            };
+            
+            setResults(realResults);
             setScanning(false);
             setProgress(100);
             
-            // Hentikan polling
             clearInterval(interval);
             setPollingInterval(null);
             
-            // Simpan hasil ke history
-            saveToHistory(id, response.results);
+            saveToHistory(id, realResults);
             
-            message.success({ content: 'Analisis selesai!', key: 'scanning' });
+            message.success({ content: 'Analysis completed!', key: 'scanning' });
           } else if (response.status === 'queued') {
-            message.info({ content: 'Analisis dalam antrian...', key: 'scanning', duration: 2 });
+            message.info({ content: 'Analysis queued...', key: 'scanning', duration: 2 });
           } else if (response.status === 'in-progress') {
-            message.info({ content: 'Analisis sedang berlangsung...', key: 'scanning', duration: 2 });
+            message.info({ content: 'Analysis in progress...', key: 'scanning', duration: 2 });
           }
         } else {
-          throw new Error(response.message || 'Gagal mendapatkan status analisis');
+          throw new Error(response.message || 'Failed to get analysis status');
         }
         
-        // Stop polling after maximum attempts
         if (pollCount >= maxPolls) {
-          throw new Error('Timeout: Analisis membutuhkan waktu terlalu lama');
+          throw new Error('Timeout: Analysis taking too long');
         }
         
       } catch (error) {
         console.error('Polling error:', error);
-        message.error({ content: `Terjadi kesalahan: ${error.message}`, key: 'scanning' });
-        setError(error.message || 'Terjadi kesalahan saat mengecek status pemindaian');
+        message.error({ content: `Error occurred: ${error.message}`, key: 'scanning' });
+        setError(error.message || 'Error occurred while checking scan status');
         setScanning(false);
         setProgress(0);
         clearInterval(interval);
         setPollingInterval(null);
       }
-    }, 5000); // Cek setiap 5 detik
+    }, 5000);
 
     setPollingInterval(interval);
   };
@@ -196,17 +345,33 @@ const VirusTotalScanner = () => {
   // Simpan hasil scan ke history
   const saveToHistory = (scanId, results) => {
     try {
+      if (!results || results.total_engines === 0) {
+        console.log('No valid results to save');
+        return;
+      }
+
+      const vulnerabilitiesFound = (results.malicious || 0) + (results.suspicious || 0);
+      
       const scanData = {
-        scannerType: 'virustotal',
+        id: Date.now(),
         target: target,
+        scannerType: 'virustotal',
         status: 'completed',
+        timestamp: new Date().toISOString(),
+        duration: `${Math.floor((Date.now() - startTime) / 1000)}s`,
+        vulnerabilitiesFound: vulnerabilitiesFound,
+        findings: generateFindings(results),
         results: results,
         metadata: {
           scanId: scanId,
-          scanType: activeTab,
+          scanType: results.search_type || activeTab,
           analysis_date: new Date().toISOString()
         }
       };
+      
+      const existingHistory = JSON.parse(localStorage.getItem('scanHistory') || '[]');
+      existingHistory.unshift(scanData);
+      localStorage.setItem('scanHistory', JSON.stringify(existingHistory));
       
       historyService.saveScanResult(scanData);
       console.log('VirusTotal scan saved to history');
@@ -215,31 +380,52 @@ const VirusTotalScanner = () => {
     }
   };
 
+  // Generate findings from real results only
+  const generateFindings = (results) => {
+    const findings = [];
+    const scanType = results.search_type || activeTab;
+    
+    if (results.malicious > 0) {
+      findings.push({
+        title: `Malicious Content Detected`,
+        riskLevel: 'critical',
+        description: `${results.malicious} out of ${results.total_engines} engines detected this ${scanType} as malicious`,
+        recommendation: `Avoid this ${scanType} and investigate further`
+      });
+    }
+    
+    if (results.suspicious > 0) {
+      findings.push({
+        title: `Suspicious Content Detected`,
+        riskLevel: 'high',
+        description: `${results.suspicious} out of ${results.total_engines} engines flagged this ${scanType} as suspicious`,
+        recommendation: `Exercise caution when accessing this ${scanType}`
+      });
+    }
+    
+    return findings;
+  };
+
   // Handler untuk submit form
   const handleSubmit = (values) => {
+    setStartTime(Date.now());
     if (activeTab === 'url') {
       scanUrl(values);
+    } else if (activeTab === 'search') {
+      searchQuery(values);
     } else {
       scanFile();
     }
   };
 
-  // Props untuk upload file - FIXED: Better file handling
+  // Props untuk upload file
   const uploadProps = {
     beforeUpload: (file) => {
-      // Validate file size (50MB limit)
       const isLt50M = file.size / 1024 / 1024 < 50;
       if (!isLt50M) {
-        message.error('File harus kurang dari 50MB');
+        message.error('File must be smaller than 50MB');
         return false;
       }
-      
-      // Validate file type (optional - you can remove this if you want to accept any file type)
-      console.log('File info:', {
-        name: file.name,
-        size: file.size,
-        type: file.type
-      });
       
       setFileList([{
         uid: file.uid,
@@ -248,14 +434,14 @@ const VirusTotalScanner = () => {
         originFileObj: file
       }]);
       
-      return false; // Prevent automatic upload
+      return false;
     },
     fileList,
     onRemove: () => {
       setFileList([]);
     },
     maxCount: 1,
-    accept: "*", // Accept any file type
+    accept: "*",
   };
 
   // Handler tab change
@@ -268,9 +454,9 @@ const VirusTotalScanner = () => {
     setTarget(null);
     setFileList([]);
     setProgress(0);
+    setSearchType(null);
     form.resetFields();
     
-    // Clear any running polling
     if (pollingInterval) {
       clearInterval(pollingInterval);
       setPollingInterval(null);
@@ -282,439 +468,400 @@ const VirusTotalScanner = () => {
     if (activeTab === 'url') {
       const values = form.getFieldsValue();
       if (values.url) {
+        setStartTime(Date.now());
         scanUrl(values);
+      }
+    } else if (activeTab === 'search') {
+      const values = form.getFieldsValue();
+      if (values.query) {
+        setStartTime(Date.now());
+        searchQuery(values);
       }
     } else {
       if (fileList.length > 0) {
+        setStartTime(Date.now());
         scanFile();
       }
     }
   };
 
-  // Tab items configuration
-  const tabItems = [
-    {
-      key: 'url',
-      label: (
-        <span>
-          <GlobalOutlined />
-          Scan URL
-        </span>
-      ),
-      children: (
-        <Card bordered={false} className="tab-content">
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleSubmit}
-            disabled={loading || scanning}
-          >
-            <Form.Item
-              name="url"
-              label="URL untuk Scan"
-              rules={[
-                { required: true, message: 'Silakan masukkan URL' },
-                { type: 'url', message: 'Format URL tidak valid' }
-              ]}
-            >
-              <Input 
-                prefix={<LinkOutlined />} 
-                placeholder="https://example.com" 
-                disabled={loading || scanning}
-                size="large"
-              />
-            </Form.Item>
-            
-            <Form.Item>
-              <Space>
-                <Button 
-                  type="primary" 
-                  htmlType="submit" 
-                  loading={loading}
-                  disabled={scanning}
-                  size="large"
-                  icon={<SafetyOutlined />}
-                >
-                  {loading ? 'Mengirim...' : 'Scan URL'}
-                </Button>
-                
-                {error && (
-                  <Button 
-                    onClick={handleRetry}
-                    icon={<ReloadOutlined />}
-                    disabled={loading || scanning}
-                  >
-                    Coba Lagi
-                  </Button>
-                )}
-              </Space>
-            </Form.Item>
-          </Form>
-        </Card>
-      )
-    },
-    {
-      key: 'file',
-      label: (
-        <span>
-          <FileTextOutlined />
-          Scan File
-        </span>
-      ),
-      children: (
-        <Card bordered={false} className="tab-content">
-          <Form layout="vertical" disabled={loading || scanning}>
-            <Form.Item
-              label="File untuk Scan"
-              extra="Ukuran file maksimal 50MB. Semua jenis file didukung."
-            >
-              <Upload.Dragger {...uploadProps} disabled={loading || scanning}>
-                <p className="ant-upload-drag-icon">
-                  <UploadOutlined />
-                </p>
-                <p className="ant-upload-text">
-                  Klik atau drag file ke area ini untuk upload
-                </p>
-                <p className="ant-upload-hint">
-                  Mendukung semua jenis file dengan ukuran maksimal 50MB
-                </p>
-              </Upload.Dragger>
-            </Form.Item>
-            
-            <Form.Item>
-              <Space>
-                <Button 
-                  type="primary" 
-                  onClick={() => handleSubmit({})} 
-                  loading={loading}
-                  disabled={scanning || fileList.length === 0}
-                  size="large"
-                  icon={<SafetyOutlined />}
-                >
-                  {loading ? 'Mengirim...' : 'Scan File'}
-                </Button>
-                
-                {error && (
-                  <Button 
-                    onClick={handleRetry}
-                    icon={<ReloadOutlined />}
-                    disabled={loading || scanning || fileList.length === 0}
-                  >
-                    Coba Lagi
-                  </Button>
-                )}
-              </Space>
-            </Form.Item>
-          </Form>
-        </Card>
-      )
+  // Input change handler untuk search tab
+  const handleSearchInputChange = (e) => {
+    const value = e.target.value;
+    if (value && value.trim()) {
+      const detected = detectInputType(value);
+      setSearchType(detected.type);
+    } else {
+      setSearchType(null);
     }
-  ];
+  };
 
-  // Render hasil scan
-  const renderResults = () => {
-    if (!results) return null;
-
-    const { malicious, suspicious, harmless, undetected, total_engines, scan_date } = results;
-    const detectionRate = total_engines > 0 ? ((malicious + suspicious) / total_engines) * 100 : 0;
-    const isMalicious = malicious > 0;
-    const isSuspicious = suspicious > 0;
-
-    // Determine overall status
-    let overallStatus = 'success';
-    let statusText = 'Tidak Terdeteksi Berbahaya';
-    let statusDescription = `${activeTab === 'url' ? 'URL' : 'File'} ini tidak terdeteksi berbahaya oleh mesin anti-virus.`;
-
-    if (isMalicious) {
-      overallStatus = 'error';
-      statusText = 'Terdeteksi Berbahaya!';
-      statusDescription = `${activeTab === 'url' ? 'URL' : 'File'} ini terdeteksi berbahaya oleh ${malicious} dari ${total_engines} mesin anti-virus.`;
-    } else if (isSuspicious) {
-      overallStatus = 'warning';
-      statusText = 'Terdeteksi Mencurigakan';
-      statusDescription = `${activeTab === 'url' ? 'URL' : 'File'} ini terdeteksi mencurigakan oleh ${suspicious} dari ${total_engines} mesin anti-virus.`;
-    }
-
+  // Render search type indicator
+  const renderSearchTypeIndicator = () => {
+    if (!searchType || searchType === 'unknown') return null;
+    
+    const typeColors = {
+      'md5': 'purple',
+      'sha1': 'purple',
+      'sha256': 'purple',
+      'url': 'blue',
+      'domain': 'green',
+      'ip': 'orange',
+      'ipv6': 'orange'
+    };
+    
+    const typeLabels = {
+      'md5': 'MD5 Hash',
+      'sha1': 'SHA1 Hash',
+      'sha256': 'SHA256 Hash',
+      'url': 'URL',
+      'domain': 'Domain',
+      'ip': 'IPv4 Address',
+      'ipv6': 'IPv6 Address'
+    };
+    
     return (
-      <Card 
-        title={
-          <Space>
-            <SafetyOutlined />
-            {`Hasil Analisis VirusTotal: ${target}`}
-          </Space>
-        } 
-        className="results-card" 
-        style={{ marginTop: 20 }}
-      >
-        <Alert
-          message={statusText}
-          description={statusDescription}
-          type={overallStatus}
-          showIcon
-          style={{ marginBottom: 20 }}
-          action={
-            <Tooltip title="Informasi lebih lanjut">
-              <Button size="small" icon={<InfoCircleOutlined />} />
-            </Tooltip>
-          }
-        />
-        
-        <Row gutter={[16, 16]} className="summary-stats">
-          <Col xs={24} sm={12} md={6}>
-            <Card bordered={false} className="stat-card malicious">
-              <div className="stat-header">
-                <CloseCircleOutlined className="stat-icon" />
-                <h4>Berbahaya</h4>
-              </div>
-              <div className="stat-value">
-                <span className="stat-number">{malicious}</span>
-                <span className="stat-percentage">({((malicious/total_engines)*100).toFixed(1)}%)</span>
-              </div>
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Card bordered={false} className="stat-card suspicious">
-              <div className="stat-header">
-                <WarningOutlined className="stat-icon" />
-                <h4>Mencurigakan</h4>
-              </div>
-              <div className="stat-value">
-                <span className="stat-number">{suspicious}</span>
-                <span className="stat-percentage">({((suspicious/total_engines)*100).toFixed(1)}%)</span>
-              </div>
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Card bordered={false} className="stat-card harmless">
-              <div className="stat-header">
-                <CheckCircleOutlined className="stat-icon" />
-                <h4>Tidak Berbahaya</h4>
-              </div>
-              <div className="stat-value">
-                <span className="stat-number">{harmless}</span>
-                <span className="stat-percentage">({((harmless/total_engines)*100).toFixed(1)}%)</span>
-              </div>
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Card bordered={false} className="stat-card undetected">
-              <div className="stat-header">
-                <QuestionOutlined className="stat-icon" />
-                <h4>Tidak Terdeteksi</h4>
-              </div>
-              <div className="stat-value">
-                <span className="stat-number">{undetected}</span>
-                <span className="stat-percentage">({((undetected/total_engines)*100).toFixed(1)}%)</span>
-              </div>
-            </Card>
-          </Col>
-        </Row>
-        
-        <div className="detection-summary">
-          <Row gutter={[24, 24]} align="middle">
-            <Col xs={24} md={12}>
-              <div className="progress-section">
-                <h4>Tingkat Deteksi Keseluruhan</h4>
-                <Progress 
-                  type="circle" 
-                  percent={Math.round(detectionRate)} 
-                  status={isMalicious ? "exception" : (isSuspicious ? "active" : "success")}
-                  format={(percent) => `${percent}%`}
-                  width={120}
-                  strokeWidth={8}
-                />
-              </div>
-            </Col>
-            <Col xs={24} md={12}>
-              <div className="scan-info">
-                <h4>Informasi Scan</h4>
-                <ul className="scan-details">
-                  <li><strong>Tanggal scan:</strong> {new Date(scan_date * 1000).toLocaleString()}</li>
-                  <li><strong>Total mesin:</strong> {total_engines}</li>
-                  <li><strong>Target:</strong> {target}</li>
-                  <li><strong>Jenis scan:</strong> {activeTab === 'url' ? 'URL' : 'File'}</li>
-                </ul>
-              </div>
-            </Col>
-          </Row>
-        </div>
-        
-        {results.detailed_results && (
-          <>
-            <Divider orientation="left">Detail Hasil per Engine</Divider>
-            <VirusTotalDetailedResults results={results} />
-          </>
-        )}
-      </Card>
+      <div className="search-type-indicator">
+        <Tag color={typeColors[searchType]} icon={<InfoCircleOutlined />}>
+          Detected: {typeLabels[searchType]}
+        </Tag>
+      </div>
     );
   };
 
   return (
-    <div className="virustotal-scanner">
-      <Card 
-        title={
-          <div className="scanner-header">
-            <SafetyOutlined className="scanner-icon" />
-            <div>
-              <h3>VirusTotal Scanner</h3>
-              <p>Leverasi VirusTotal's multi-engine scanning untuk deteksi malicious files dan URLs</p>
-            </div>
-          </div>
-        } 
-        className="scanner-card"
-      >
-        {error && (
-          <Alert 
-            message="Error" 
-            description={error} 
-            type="error" 
-            showIcon 
-            closable
-            style={{ marginBottom: 16 }}
-            onClose={() => setError(null)}
-          />
-        )}
-        
-        <Tabs 
-          activeKey={activeTab} 
-          onChange={onTabChange}
-          items={tabItems}
-          size="large"
-          className="scanner-tabs"
-        />
-        
-        {scanning && (
-          <Card className="scanning-indicator" bordered={false}>
-            <div className="scanning-content">
-              <Spin size="large" />
-              <div className="scanning-text">
-                <h4>Sedang melakukan scan pada {activeTab === 'url' ? 'URL' : 'file'}: {target}</h4>
-                <p>Ini mungkin membutuhkan beberapa menit. Mohon tunggu...</p>
-                <Progress 
-                  percent={progress} 
-                  status="active"
-                  strokeColor={{
-                    '0%': '#108ee9',
-                    '100%': '#87d068',
-                  }}
-                />
+    <div className="virustotal-scanner-container">
+      {/* Back Button */}
+      {onBack && (
+        <div className="back-button-container" style={{ marginBottom: '20px' }}>
+          <Button 
+            type="default" 
+            icon={<ArrowLeftOutlined />} 
+            onClick={onBack}
+            size="large"
+          >
+            Back to scanner selection
+          </Button>
+        </div>
+      )}
+
+      {/* Header Section */}
+      <div className="scanner-header">
+        <div className="header-background">
+          <Title level={2} className="header-title">
+            VirusTotal Scanner
+          </Title>
+          <Paragraph className="header-description">
+            Analyse suspicious files, domains, IPs and URLs to detect malware and other breaches, 
+            automatically share them with the security community.
+          </Paragraph>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="scanner-content">
+        <Row justify="center">
+          <Col xs={24} sm={24} md={22} lg={20} xl={18} xxl={16}>
+            
+            {/* Tab Navigation */}
+            <Card className="tab-navigation-card">
+              <div className="tab-buttons">
+                <Button 
+                  type={activeTab === 'file' ? 'primary' : 'text'}
+                  size="large"
+                  icon={<FileTextOutlined />}
+                  onClick={() => onTabChange('file')}
+                  className={`tab-button ${activeTab === 'file' ? 'active' : ''}`}
+                >
+                  FILE
+                </Button>
+                <Button 
+                  type={activeTab === 'url' ? 'primary' : 'text'}
+                  size="large"
+                  icon={<GlobalOutlined />}
+                  onClick={() => onTabChange('url')}
+                  className={`tab-button ${activeTab === 'url' ? 'active' : ''}`}
+                >
+                  URL
+                </Button>
+                <Button 
+                  type={activeTab === 'search' ? 'primary' : 'text'}
+                  size="large"
+                  icon={<SearchOutlined />}
+                  onClick={() => onTabChange('search')}
+                  className={`tab-button ${activeTab === 'search' ? 'active' : ''}`}
+                >
+                  SEARCH
+                </Button>
               </div>
-            </div>
-          </Card>
-        )}
-      </Card>
-      
-      {renderResults()}
-    </div>
-  );
-};
+            </Card>
 
-// Sub-komponen untuk menampilkan hasil detail
-const VirusTotalDetailedResults = ({ results }) => {
-  if (!results || !results.detailed_results) {
-    return null;
-  }
+            {/* Tab Content */}
+            <Card className="tab-content-card">
+              {/* File Tab */}
+              {activeTab === 'file' && (
+                <div className="tab-content file-tab">
+                  <div className="tab-icon">
+                    <FileTextOutlined />
+                  </div>
+                  <Title level={3}>Upload File for Analysis</Title>
+                  <Paragraph>
+                    Select a file to analyze for malware and security threats.
+                    Maximum file size: 50MB
+                  </Paragraph>
+                  
+                  <div className="upload-section">
+                    <Upload.Dragger 
+                      {...uploadProps} 
+                      disabled={loading || scanning}
+                      className="file-upload-dragger"
+                    >
+                      <p className="ant-upload-drag-icon">
+                        <CloudUploadOutlined style={{ fontSize: 48, color: '#1890ff' }} />
+                      </p>
+                      <p className="ant-upload-text">
+                        Click or drag file to this area to upload
+                      </p>
+                      <p className="ant-upload-hint">
+                        Support for single file upload. File size must be less than 50MB.
+                      </p>
+                    </Upload.Dragger>
+                    
+                    {fileList.length > 0 && (
+                      <div className="file-selected">
+                        <Row align="middle" justify="space-between">
+                          <Col>
+                            <Text strong>{fileList[0].name}</Text>
+                          </Col>
+                          <Col>
+                            <Button 
+                              type="primary" 
+                              icon={<ScanOutlined />}
+                              onClick={() => handleSubmit({})} 
+                              loading={loading}
+                              disabled={scanning}
+                              size="large"
+                            >
+                              {loading ? 'Uploading...' : 'Scan File'}
+                            </Button>
+                          </Col>
+                        </Row>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
-  const getStatusColor = (result) => {
-    switch (result?.toLowerCase()) {
-      case 'malicious':
-        return 'error';
-      case 'suspicious':
-        return 'warning';
-      case 'harmless':
-        return 'success';
-      default:
-        return 'default';
-    }
-  };
+              {/* URL Tab */}
+              {activeTab === 'url' && (
+                <div className="tab-content url-tab">
+                  <div className="tab-icon">
+                    <GlobalOutlined />
+                  </div>
+                  <Title level={3}>Scan URL</Title>
+                  <Paragraph>
+                    Enter any URL to check for malicious content and security threats.
+                    VirusTotal will handle any format you provide.
+                  </Paragraph>
+                  
+                  <Form
+                    form={form}
+                    onFinish={handleSubmit}
+                    disabled={loading || scanning}
+                    layout="vertical"
+                    className="url-form"
+                  >
+                    <Form.Item
+                      name="url"
+                      label="URL to scan"
+                      rules={[
+                        { required: true, message: 'Please enter a URL' },
+                        { whitespace: true, message: 'URL cannot be empty' }
+                      ]}
+                      extra="Enter any URL format - VirusTotal will process it automatically"
+                    >
+                      <Input 
+                        placeholder="Enter any URL (e.g., google.com, https://example.com, http://test.org)" 
+                        disabled={loading || scanning}
+                        size="large"
+                        prefix={<LinkOutlined />}
+                      />
+                    </Form.Item>
+                    
+                    <Form.Item>
+                      <Button 
+                        type="primary" 
+                        htmlType="submit" 
+                        icon={<ScanOutlined />}
+                        loading={loading}
+                        disabled={scanning}
+                        size="large"
+                        block
+                      >
+                        {loading ? 'Submitting...' : 'Scan URL'}
+                      </Button>
+                    </Form.Item>
+                  </Form>
+                </div>
+              )}
 
-  const getStatusIcon = (result) => {
-    switch (result?.toLowerCase()) {
-      case 'malicious':
-        return <CloseCircleOutlined style={{ color: '#ff4d4f' }} />;
-      case 'suspicious':
-        return <WarningOutlined style={{ color: '#faad14' }} />;
-      case 'harmless':
-        return <CheckCircleOutlined style={{ color: '#52c41a' }} />;
-      default:
-        return <QuestionOutlined style={{ color: '#d9d9d9' }} />;
-    }
-  };
+              {/* Search Tab */}
+              {activeTab === 'search' && (
+                <div className="tab-content search-tab">
+                  <div className="tab-icon">
+                    <SearchOutlined />
+                  </div>
+                  <Title level={3}>Search Analysis</Title>
+                  <Paragraph>
+                    Search for a hash, domain, IP address, URL or gain additional context
+                    and threat landscape visibility.
+                  </Paragraph>
+                  
+                  <Form
+                    form={form}
+                    onFinish={handleSubmit}
+                    disabled={loading || scanning}
+                    layout="vertical"
+                    className="search-form"
+                  >
+                    <Form.Item
+                      name="query"
+                      label="Search term"
+                      rules={[
+                        { required: true, message: 'Please enter search term' }
+                      ]}
+                    >
+                      <Input 
+                        placeholder="URL, IP address, domain, or file hash" 
+                        disabled={loading || scanning}
+                        size="large"
+                        prefix={<SearchOutlined />}
+                        onChange={handleSearchInputChange}
+                      />
+                    </Form.Item>
+                    
+                    {renderSearchTypeIndicator()}
+                    
+                    <Form.Item>
+                      <Button 
+                        type="primary" 
+                        htmlType="submit" 
+                        icon={<ScanOutlined />}
+                        loading={loading}
+                        disabled={scanning}
+                        size="large"
+                        block
+                      >
+                        {loading ? 'Searching...' : 'Search'}
+                      </Button>
+                    </Form.Item>
+                  </Form>
+                  
+                  <div className="search-examples">
+                    <Text type="secondary">Examples:</Text>
+                    <div className="example-tags">
+                      <Tag 
+                        onClick={() => form.setFieldsValue({query: 'google.com'})} 
+                        className="example-tag"
+                      >
+                        google.com
+                      </Tag>
+                      <Tag 
+                        onClick={() => form.setFieldsValue({query: '8.8.8.8'})} 
+                        className="example-tag"
+                      >
+                        8.8.8.8
+                      </Tag>
+                      <Tag 
+                        onClick={() => form.setFieldsValue({query: 'example.com'})} 
+                        className="example-tag"
+                      >
+                        example.com
+                      </Tag>
+                      <Tag 
+                        onClick={() => form.setFieldsValue({query: 'd41d8cd98f00b204e9800998ecf8427e'})} 
+                        className="example-tag"
+                      >
+                        MD5 Hash
+                      </Tag>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-  // Persiapkan data untuk tabel
-  const tableData = Object.entries(results.detailed_results).map(([engineName, engineResult], index) => ({
-    key: index,
-    engine: engineName,
-    category: engineResult.category || 'undetected',
-    result: engineResult.result || '-',
-    method: engineResult.method || '-',
-    update: engineResult.engine_update || '-',
-  }));
+              {/* Terms Notice */}
+              <div className="terms-notice">
+                <Text type="secondary" style={{ fontSize: '12px' }}>
+                  By submitting data above, you are agreeing to our Terms of Service and Privacy Notice, 
+                  and to the sharing of your submission with the security community. 
+                  Please do not submit any personal information.
+                </Text>
+              </div>
+            </Card>
 
-  const columns = [
-    {
-      title: 'Mesin Anti-Virus',
-      dataIndex: 'engine',
-      key: 'engine',
-      sorter: (a, b) => a.engine.localeCompare(b.engine),
-      width: 200,
-      fixed: 'left',
-    },
-    {
-      title: 'Hasil',
-      dataIndex: 'category',
-      key: 'category',
-      render: (category) => (
-        <Tag icon={getStatusIcon(category)} color={getStatusColor(category)}>
-          {category.toUpperCase()}
-        </Tag>
-      ),
-      filters: [
-        { text: 'Berbahaya', value: 'malicious' },
-        { text: 'Mencurigakan', value: 'suspicious' },
-        { text: 'Tidak Berbahaya', value: 'harmless' },
-        { text: 'Tidak Terdeteksi', value: 'undetected' },
-      ],
-      onFilter: (value, record) => record.category === value,
-      sorter: (a, b) => a.category.localeCompare(b.category),
-      width: 120,
-    },
-    {
-      title: 'Deteksi',
-      dataIndex: 'result',
-      key: 'result',
-      ellipsis: true,
-      width: 200,
-    },
-    {
-      title: 'Metode',
-      dataIndex: 'method',
-      key: 'method',
-      width: 100,
-    },
-    {
-      title: 'Update Terakhir',
-      dataIndex: 'update',
-      key: 'update',
-      width: 150,
-    },
-  ];
+            {/* Error Display */}
+            {error && (
+              <Alert 
+                message="Scan Error" 
+                description={error} 
+                type="error" 
+                showIcon 
+                closable
+                className="error-alert"
+                onClose={() => setError(null)}
+                action={
+                  <Button size="small" onClick={handleRetry} disabled={loading || scanning}>
+                    <ReloadOutlined /> Retry
+                  </Button>
+                }
+              />
+            )}
 
-  return (
-    <div className="detailed-results">
-      <Table
-        dataSource={tableData}
-        columns={columns}
-        pagination={{ 
-          pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total, range) => `${range[0]}-${range[1]} dari ${total} engine`
-        }}
-        scroll={{ x: 800 }}
-        size="small"
-        className="results-table"
-      />
+            {/* Scanning Progress */}
+            {scanning && (
+              <Card className="scanning-progress-card">
+                <div className="scanning-content">
+                  <Row gutter={24} align="middle">
+                    <Col xs={24} sm={6} className="scanning-icon">
+                      <Spin size="large" />
+                    </Col>
+                    <Col xs={24} sm={18}>
+                      <Title level={4} className="scanning-title">
+                        Analysing {searchType || activeTab}: {target}
+                      </Title>
+                      <Paragraph className="scanning-description">
+                        This may take a few minutes. Please wait while we analyze your submission...
+                      </Paragraph>
+                      <Progress 
+                        percent={progress} 
+                        status="active"
+                        strokeColor={{
+                          '0%': '#1890ff',
+                          '100%': '#52c41a',
+                        }}
+                        className="scanning-progress"
+                      />
+                    </Col>
+                  </Row>
+                </div>
+              </Card>
+            )}
+
+            {/* Results Display */}
+            {results && (
+              <div className="results-section">
+                <Divider>
+                  <Title level={3}>
+                    <SafetyOutlined /> Analysis Results
+                  </Title>
+                </Divider>
+                <VirusTotalResults results={results} />
+              </div>
+            )}
+
+          </Col>
+        </Row>
+      </div>
     </div>
   );
 };

@@ -1,6 +1,6 @@
-// frontend/src/pages/NewScan.jsx
+// frontend/src/pages/NewScan.jsx - CLEAN PROFESSIONAL DESIGN
 import React, { useState, useEffect } from 'react';
-import { FaSpinner, FaServer, FaGlobe, FaLock, FaSearch, FaShieldAlt, FaExclamationTriangle, FaGoogle } from 'react-icons/fa';
+import { FaSpinner, FaServer, FaGlobe, FaLock, FaSearch, FaShieldAlt, FaExclamationTriangle, FaGoogle, FaVirus, FaRocket, FaArrowLeft } from 'react-icons/fa';
 import PortScanner from '../components/scanners/PortScanner';
 import SSLScanner from '../components/scanners/SSLScanner';
 import SubdomainScanner from '../components/scanners/SubdomainScanner';
@@ -8,10 +8,9 @@ import DefacementScanner from '../components/scanners/DefacementScanner';
 import PoisoningScanner from '../components/scanners/PoisoningScanner';
 import GoogleDorkingScanner from '../components/scanners/GoogleDorkingScanner';
 import WebVulnerabilityScanner from '../components/scanners/WebVulnerabilityScanner';
+import VirusTotalScanner from '../components/scanners/VirusTotalScanner';
 import { api } from '../utils/api';
 import '../styles/NewScan.css';
-import VirusTotalScanner from '../components/scanners/VirusTotalScanner';
-
 
 const NewScan = () => {
     const [scanners, setScanners] = useState([]);
@@ -19,92 +18,95 @@ const NewScan = () => {
     const [error, setError] = useState(null);
     const [selectedScanner, setSelectedScanner] = useState(null);
     
+    // Enhanced scanner data with clean professional styling
+    const scannerEnhancements = {
+        'port-scanner': {
+            icon: FaServer,
+            description: 'Scan for open ports on target hosts',
+            iconClass: 'port-scanner'
+        },
+        'ssl-scanner': {
+            icon: FaLock,
+            description: 'Comprehensive SSL/TLS security analysis',
+            iconClass: 'ssl-scanner'
+        },
+        'web-scanner': {
+            icon: FaGlobe,
+            description: 'Detect web vulnerabilities using OWASP ZAP',
+            iconClass: 'web-scanner'
+        },
+        'subdomain-scanner': {
+            icon: FaSearch,
+            description: 'Discover subdomains of a target domain',
+            iconClass: 'subdomain-scanner'
+        },
+        'defacement-scanner': {
+            icon: FaShieldAlt,
+            description: 'Monitor and detect website defacement activities',
+            iconClass: 'defacement-scanner'
+        },
+        'poisoning-scanner': {
+            icon: FaExclamationTriangle,
+            description: 'Detect search engine poisoning and malicious SEO activities',
+            iconClass: 'poisoning-scanner'
+        },
+        'google-dorking-scanner': {
+            icon: FaGoogle,
+            description: 'Find exposed information using Google search operators',
+            iconClass: 'google-dorking-scanner'
+        },
+        'virustotal-scanner': {
+            icon: FaVirus,
+            description: 'Leverage VirusTotal\'s multi-engine scanning to detect malicious files and URLs',
+            iconClass: 'virustotal-scanner'
+        }
+    };
+    
     useEffect(() => {
         const fetchScanners = async () => {
             try {
-                console.log('Attempting to fetch scanners...');
+                setLoading(true);
+                setError(null);
+                console.log('🔍 Attempting to fetch scanners...');
                 
+                // Test backend connection first
                 try {
                     const status = await api.getStatus();
-                    console.log('API Status:', status);
+                    console.log('✅ API Status:', status);
                 } catch (statusError) {
-                    console.error('Cannot connect to API:', statusError);
-                    setError(`Cannot connect to backend server at http://localhost:5000. Please ensure the backend is running.`);
+                    console.error('❌ Cannot connect to API:', statusError);
+                    setError(`Cannot connect to backend server. Please ensure the backend is running.`);
                     setLoading(false);
                     return;
                 }
                 
+                // Fetch scanners
                 const response = await api.getScanners();
-                console.log('Scanners received:', response);
+                console.log('📋 Scanners received:', response);
                 
                 // Enhance scanners with our custom data
-                const enhancedScanners = response.map(scanner => ({
-                    ...scanner,
-                    icon: getIcon(scanner.id),
-                    gradient: getGradient(scanner.id),
-                    details: getDetails(scanner.id)
-                }));
+                const enhancedScanners = response.map(scanner => {
+                    const enhancement = scannerEnhancements[scanner.id] || {};
+                    return {
+                        ...scanner,
+                        icon: enhancement.icon || FaServer,
+                        description: enhancement.description || scanner.description,
+                        iconClass: enhancement.iconClass || scanner.id
+                    };
+                });
                 
                 setScanners(enhancedScanners);
-                setLoading(false);
+                
             } catch (err) {
-                console.error('Error fetching scanners:', err);
-                let errorMessage = 'Failed to load scanners. ';
-                
-                if (err.message === 'Network Error') {
-                    errorMessage += 'Cannot connect to the backend server. Please ensure the backend is running on http://localhost:5000';
-                } else if (err.response) {
-                    errorMessage += `Server error: ${err.response.status} - ${err.response.statusText}`;
-                } else {
-                    errorMessage += err.message;
-                }
-                
-                setError(errorMessage);
+                console.error('❌ Error fetching scanners:', err);
+                setError('Failed to load scanners. Please try again.');
+            } finally {
                 setLoading(false);
             }
         };
         
         fetchScanners();
     }, []);
-    
-    const getIcon = (scannerId) => {
-        const icons = {
-            'port-scanner': '🖥️',
-            'ssl-scanner': '🔒',
-            'web-scanner': '🌐',
-            'subdomain-scanner': '🔍',
-            'defacement-scanner': '🛡️',
-            'poisoning-scanner': '⚠️',
-            'google-dorking-scanner': '🔎'
-        };
-        return icons[scannerId] || '📡';
-    };
-    
-    const getGradient = (scannerId) => {
-        const gradients = {
-            'port-scanner': 'gradient-blue',
-            'ssl-scanner': 'gradient-green',
-            'web-scanner': 'gradient-red',
-            'subdomain-scanner': 'gradient-purple',
-            'defacement-scanner': 'gradient-orange',
-            'poisoning-scanner': 'gradient-yellow',
-            'google-dorking-scanner': 'gradient-cyan'
-        };
-        return gradients[scannerId] || 'gradient-default';
-    };
-    
-    const getDetails = (scannerId) => {
-        const details = {
-            'port-scanner': 'Identify open TCP/UDP ports and running services',
-            'ssl-scanner': 'Analyze certificate validity, protocol support, and cipher suites',
-            'web-scanner': 'Find security issues like XSS, SQL injection, and more',
-            'subdomain-scanner': 'Enumerate subdomains using multiple techniques',
-            'defacement-scanner': 'Real-time monitoring for unauthorized changes',
-            'poisoning-scanner': 'Identify compromised search results and SEO attacks',
-            'google-dorking-scanner': 'Advanced Google search techniques for security testing'
-        };
-        return details[scannerId] || '';
-    };
     
     const renderSelectedScanner = () => {
         switch (selectedScanner) {
@@ -123,43 +125,62 @@ const NewScan = () => {
             case 'google-dorking-scanner':
                 return <GoogleDorkingScanner onBack={() => setSelectedScanner(null)} />;
             case 'virustotal-scanner':
-                return <VirusTotalScanner />;
-                default:
+                return <VirusTotalScanner onBack={() => setSelectedScanner(null)} />;
+            default:
                 return (
-                    <div className="card text-center scanner-not-implemented">
-                        <h3>Scanner Not Implemented</h3>
-                        <p>This scanner is not yet implemented.</p>
+                    <div className="simple-container">
                         <button 
-                            className="btn btn-secondary"
+                            className="back-button"
                             onClick={() => setSelectedScanner(null)}
                         >
-                            Back
+                            <FaArrowLeft /> Back to Scanner Selection
                         </button>
+                        <div className="simple-card">
+                            <FaExclamationTriangle className="error-icon" />
+                            <h3>Scanner Not Available</h3>
+                            <p>This scanner is currently not implemented.</p>
+                            <button 
+                                className="simple-button secondary"
+                                onClick={() => setSelectedScanner(null)}
+                            >
+                                Back to Scanner Selection
+                            </button>
+                        </div>
                     </div>
                 );  
         }
     };
     
+    const handleScannerClick = (scanner) => {
+        if (scanner.status === 'active') {
+            setSelectedScanner(scanner.id);
+        }
+    };
+    
     if (loading) {
         return (
-            <div className="loading-container">
-                <FaSpinner className="loading-spinner" />
-                <p>Loading scanners...</p>
+            <div className="simple-container">
+                <div className="simple-card">
+                    <FaSpinner className="loading-spinner" />
+                    <h3>Loading Security Scanners...</h3>
+                    <p>Please wait while we load the available security scanners...</p>
+                </div>
             </div>
         );
     }
     
     if (error) {
         return (
-            <div className="error-container">
-                <div className="alert alert-error">
-                    <h3>Error</h3>
+            <div className="simple-container">
+                <div className="simple-card">
+                    <FaExclamationTriangle className="error-icon" />
+                    <h3>Connection Error</h3>
                     <p>{error}</p>
                     <button 
                         onClick={() => window.location.reload()} 
-                        className="btn btn-primary mt-4"
+                        className="simple-button primary"
                     >
-                        Retry
+                        Retry Connection
                     </button>
                 </div>
             </div>
@@ -171,52 +192,67 @@ const NewScan = () => {
     }
     
     return (
-        <div className="new-scan-container">
-            <div className="header-section">
-                <h1 className="page-title">Select a Security Scanner</h1>
-                <p className="page-subtitle">Choose the type of security scan you want to perform on your target.</p>
+        <div className="simple-container">
+            {/* Header */}
+            <div className="simple-header">
+                <h1>
+                    <FaRocket />
+                    Select a Security Scanner
+                </h1>
+                <p>Choose the type of security scan you want to perform on your target.</p>
             </div>
 
-            <div className="scanners-grid">
-                {scanners.map((scanner) => (
-                    <div 
-                        key={scanner.id} 
-                        className="scanner-card"
-                        onClick={() => setSelectedScanner(scanner.id)}
-                    >
-                        <div className={`card-header ${scanner.gradient}`}>
-                            <span className="scanner-icon">{scanner.icon}</span>
-                        </div>
-                        
-                        <div className="card-body">
+            {/* Scanners Grid - Clean Professional Style */}
+            <div className="simple-scanners-grid">
+                {scanners.map((scanner) => {
+                    const IconComponent = scanner.icon;
+                    return (
+                        <div 
+                            key={scanner.id} 
+                            className={`simple-scanner-card ${scanner.status !== 'active' ? 'disabled' : ''}`}
+                            onClick={() => handleScannerClick(scanner)}
+                        >
+                            {/* Scanner Icon */}
+                            <div className="scanner-icon-container">
+                                <div className={`scanner-icon ${scanner.iconClass || scanner.id}`}>
+                                    <IconComponent />
+                                </div>
+                            </div>
+                            
+                            {/* Scanner Content */}
                             <h3 className="scanner-name">{scanner.name}</h3>
                             <p className="scanner-description">{scanner.description}</p>
-                            <p className="scanner-details">{scanner.details}</p>
                             
-                            {scanner.features && (
-                                <ul className="features-list">
-                                    {scanner.features.map((feature, index) => (
-                                        <li key={index}>{feature}</li>
-                                    ))}
-                                </ul>
-                            )}
-                        </div>
-                        
-                        <div className="card-footer">
+                            {/* Action Button */}
                             <button 
-                                className="select-button"
+                                className={`simple-button ${scanner.status === 'active' ? 'primary' : 'disabled'}`}
+                                disabled={scanner.status !== 'active'}
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    setSelectedScanner(scanner.id);
+                                    handleScannerClick(scanner);
                                 }}
                             >
-                                Select Scanner
-                                <span className="arrow">→</span>
+                                {scanner.status === 'active' ? 'Select Scanner' : 'Unavailable'}
                             </button>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
+
+            {/* No Scanners Message */}
+            {scanners.length === 0 && !loading && !error && (
+                <div className="simple-card">
+                    <FaExclamationTriangle className="error-icon" />
+                    <h3>No Scanners Available</h3>
+                    <p>No security scanners are currently available. Please check your configuration.</p>
+                    <button 
+                        onClick={() => window.location.reload()} 
+                        className="simple-button primary"
+                    >
+                        Refresh
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

@@ -1,6 +1,6 @@
-# backend/app.py
+# backend/app.py - VERSI LENGKAP DENGAN PERBAIKAN CORS
 from flask import Flask, jsonify, request
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from datetime import datetime, timedelta
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, create_access_token
 from pymongo import MongoClient
@@ -24,9 +24,9 @@ from services.virustotal_service import scan_url, scan_file, get_analysis_result
 # Import untuk web vulnerability scanner dengan ZAP
 try:
     from services.web_vulnerability_scanner import WebVulnerabilityScanner
-    print("Web vulnerability scanner (ZAP) imported successfully")
+    print("✅ Web vulnerability scanner (ZAP) imported successfully")
 except ImportError as e:
-    print(f"Error importing web vulnerability scanner: {e}")
+    print(f"❌ Error importing web vulnerability scanner: {e}")
     WebVulnerabilityScanner = None
 
 # MongoDB Connection
@@ -46,11 +46,16 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Enable CORS for all routes with proper configuration
+# ✅ PERBAIKAN CORS - Konfigurasi yang lebih detail
 CORS(app, 
-     resources={r"/api/*": {"origins": "*"}}, 
-     supports_credentials=True,
-     allow_headers=["Content-Type", "Authorization"])
+     resources={
+         r"/api/*": {
+             "origins": ["http://localhost:3000", "http://127.0.0.1:3000"],
+             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+             "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
+             "supports_credentials": True
+         }
+     })
 
 # Initialize services
 port_scanner = PortScanner()
@@ -65,7 +70,7 @@ web_vulnerability_scanner = WebVulnerabilityScanner() if WebVulnerabilityScanner
 # Set VirusTotal API key
 VIRUSTOTAL_API_KEY = os.environ.get('VIRUSTOTAL_API_KEY', '1c10f9758e940d1a6820c53ca7840620e7a6d91a55344312db9cb2b52da78c79')
 
-# Ensure CORS headers in preflight requests
+# ✅ PERBAIKAN - Ensure CORS headers in preflight requests
 @app.before_request
 def handle_preflight():
     if request.method == "OPTIONS":
@@ -73,19 +78,26 @@ def handle_preflight():
         
         # Add required CORS headers
         headers = resp.headers
-        headers['Access-Control-Allow-Origin'] = '*'
+        headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
         headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-        headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Access-Control-Allow-Credentials'
+        headers['Access-Control-Allow-Credentials'] = 'true'
         headers['Access-Control-Max-Age'] = '3600'
         
         return resp
 
-# Add CORS headers to all responses
+# ✅ PERBAIKAN - Add CORS headers to all responses
 @app.after_request
 def add_cors_headers(response):
-    response.headers['Access-Control-Allow-Origin'] = '*'
+    origin = request.headers.get('Origin')
+    if origin in ['http://localhost:3000', 'http://127.0.0.1:3000']:
+        response.headers['Access-Control-Allow-Origin'] = origin
+    else:
+        response.headers['Access-Control-Allow-Origin'] = '*'
+    
     response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Access-Control-Allow-Credentials'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
     return response
 
 # Auth routes
@@ -189,7 +201,11 @@ def get_current_user():
 # API Status route
 @app.route('/api/status', methods=['GET'])
 def status():
-    return jsonify({'status': 'running'})
+    return jsonify({
+        'status': 'running',
+        'message': 'CyberScan API is running',
+        'timestamp': datetime.now().isoformat()
+    })
 
 # Debug route
 @app.route('/api/debug-test', methods=['GET', 'POST'])
@@ -209,7 +225,7 @@ def debug_test():
         'json': json_data
     })
 
-# Scanners list
+# ✅ PERBAIKAN UTAMA: Scanners list dengan status yang benar
 @app.route('/api/scanners', methods=['GET'])
 def get_scanners():
     scanners = [
@@ -217,13 +233,15 @@ def get_scanners():
             'id': 'port-scanner',
             'name': 'Port Scanner',
             'description': 'Scan for open ports on target hosts',
-            'icon': 'server'
+            'icon': 'server',
+            'status': 'active'
         },
         {
             'id': 'ssl-scanner',
             'name': 'SSL/TLS Scanner',
             'description': 'Check for SSL/TLS configuration issues',
-            'icon': 'lock'  
+            'icon': 'lock',
+            'status': 'active'
         },
         {
             'id': 'web-scanner',
@@ -236,25 +254,29 @@ def get_scanners():
             'id': 'subdomain-scanner',
             'name': 'Subdomain Finder',
             'description': 'Discover subdomains of a target domain',
-            'icon': 'search'
+            'icon': 'search',
+            'status': 'active'
         },
         {
             'id': 'defacement-scanner',
             'name': 'Web Defacement Scanner',
             'description': 'Monitor and detect website defacement activities',
-            'icon': 'shield'
+            'icon': 'shield',
+            'status': 'unavailable'
         },
         {
             'id': 'poisoning-scanner',
             'name': 'Google Poisoning Scanner',
             'description': 'Detect search engine poisoning and malicious SEO activities',
-            'icon': 'virus'
+            'icon': 'virus',
+            'status': 'active'
         },
         {
             'id': 'google-dorking-scanner',
             'name': 'Google Dorking Scanner',
             'description': 'Find exposed information using Google search operators',
-            'icon': 'google'
+            'icon': 'google',
+            'status': 'active'
         },
         {
             'id': 'virustotal-scanner',
@@ -346,20 +368,41 @@ def run_subdomain_scan():
             'message': str(e)
         }), 500
 
-# Web Vulnerability Scanner Routes (ZAP)
-@app.route('/api/scan/web/start', methods=['POST'])
+# ✅ PERBAIKAN - Web Vulnerability Scanner Routes dengan explicit CORS
+@app.route('/api/scan/web/start', methods=['POST', 'OPTIONS'])
+@cross_origin(origins=['http://localhost:3000', 'http://127.0.0.1:3000'], 
+              methods=['POST', 'OPTIONS'],
+              allow_headers=['Content-Type', 'Authorization'])
 def start_web_scan():
     """Start a web vulnerability scan"""
     try:
+        # Handle OPTIONS request
+        if request.method == 'OPTIONS':
+            return '', 200
+            
+        print("🌐 Starting web vulnerability scan...")
         data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
         target = data.get('target')
         mode = data.get('mode', 'basic')
+        
+        print(f"Target: {target}, Mode: {mode}")
         
         if not target:
             return jsonify({'error': 'Target URL is required'}), 400
         
         if not web_vulnerability_scanner:
-            return jsonify({'error': 'Web scanner not available'}), 503
+            return jsonify({'error': 'Web scanner not available. Please ensure ZAP is running.'}), 503
+        
+        # Test ZAP connection first
+        connected, message = web_vulnerability_scanner.test_connection()
+        if not connected:
+            return jsonify({
+                'error': f'Cannot connect to ZAP: {message}. Please ensure ZAP is running on port 8080.'
+            }), 503
         
         # Get user_id from token if available
         user_id = None
@@ -367,8 +410,9 @@ def start_web_scan():
         if auth_header and auth_header.startswith('Bearer '):
             try:
                 user_id = get_jwt_identity()
+                print(f"User ID: {user_id}")
             except:
-                # Continue without user (anonymous scan)
+                print("No valid JWT token, continuing without user")
                 pass
         
         # Start scan
@@ -378,18 +422,26 @@ def start_web_scan():
             user_id=user_id
         )
         
+        print(f"Scan started: {result}")
         return jsonify(result)
         
     except Exception as e:
-        print(f"Error in web scan: {str(e)}")
+        print(f"❌ Error in web scan: {str(e)}")
         import traceback
         traceback.print_exc()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
 
-@app.route('/api/scan/web/progress/<scan_id>', methods=['GET'])
+@app.route('/api/scan/web/progress/<scan_id>', methods=['GET', 'OPTIONS'])
+@cross_origin(origins=['http://localhost:3000', 'http://127.0.0.1:3000'], 
+              methods=['GET', 'OPTIONS'])
 def get_scan_progress(scan_id):
     """Get progress for a specific scan"""
     try:
+        if request.method == 'OPTIONS':
+            return '', 200
+            
+        print(f"🔍 Getting progress for scan: {scan_id}")
+        
         if not web_vulnerability_scanner:
             return jsonify({
                 'status': 'error',
@@ -400,27 +452,45 @@ def get_scan_progress(scan_id):
         return jsonify(progress)
         
     except Exception as e:
+        print(f"❌ Error getting scan progress: {str(e)}")
         return jsonify({
             'status': 'error',
             'message': str(e)
         }), 500
 
-# Test endpoint for web scanner
-@app.route('/api/scan/web/test', methods=['GET'])
+# ✅ PERBAIKAN - Test endpoint for web scanner
+@app.route('/api/scan/web/test', methods=['GET', 'OPTIONS'])
+@cross_origin(origins=['http://localhost:3000', 'http://127.0.0.1:3000'], 
+              methods=['GET', 'OPTIONS'])
 def test_web_scan():
     """Test ZAP connectivity"""
-    if not web_vulnerability_scanner:
+    try:
+        if request.method == 'OPTIONS':
+            return '', 200
+            
+        print("🧪 Testing ZAP connection...")
+        
+        if not web_vulnerability_scanner:
+            return jsonify({
+                'status': 'error',
+                'message': 'ZAP scanner not initialized. Please check if ZAP is installed.',
+                'zap_available': False
+            }), 503
+        
+        connected, message = web_vulnerability_scanner.test_connection()
+        return jsonify({
+            'status': 'success' if connected else 'error',
+            'message': message,
+            'zap_available': connected
+        })
+        
+    except Exception as e:
+        print(f"❌ Error testing ZAP connection: {str(e)}")
         return jsonify({
             'status': 'error',
-            'message': 'ZAP scanner not initialized'
-        }), 503
-    
-    connected, message = web_vulnerability_scanner.test_connection()
-    return jsonify({
-        'status': 'success' if connected else 'error',
-        'message': message,
-        'zap_available': connected
-    })
+            'message': f'ZAP test failed: {str(e)}',
+            'zap_available': False
+        }), 500
 
 @app.route('/api/scan/defacement', methods=['POST'])
 def run_defacement_scan():
@@ -429,7 +499,7 @@ def run_defacement_scan():
         'message': 'Defacement scanner not implemented yet'
     }), 501
 
-# VirusTotal Scanner Routes - PERBAIKAN
+# VirusTotal Scanner Routes
 @app.route('/api/virustotal/url', methods=['POST'])
 def virustotal_url_scan():
     """Submit a URL for scanning with VirusTotal"""
@@ -689,13 +759,17 @@ def update_scan_status(scan_id, status, results=None):
 
 # Main entry point
 if __name__ == '__main__':
-    print("Starting CyberScan API server...")
+    print("🚀 Starting CyberScan API server...")
     print(f"VirusTotal API Key configured: {bool(VIRUSTOTAL_API_KEY)}")
+    print(f"Web Vulnerability Scanner available: {bool(web_vulnerability_scanner)}")
     
     # Print all routes for debugging
-    print("Available routes:")
+    print("\n📋 Available routes:")
     for rule in app.url_map.iter_rules():
         methods = ','.join(list(rule.methods))
         print(f"{methods:20} {str(rule)}")
+    
+    print(f"\n🌐 Server starting on http://localhost:5000")
+    print("✅ CORS enabled for: http://localhost:3000, http://127.0.0.1:3000")
     
     app.run(debug=True, host='0.0.0.0', port=5000)

@@ -1,70 +1,70 @@
-# Getting Started with Create React App
+# 🛡️ CyberScan Tools
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Advanced Security Scanning Platform - Comprehensive cybersecurity toolkit for penetration testing and vulnerability assessment.
 
-## Available Scripts
+![CyberScan Tools](https://img.shields.io/badge/Version-1.0.0-blue.svg)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
+![Platform](https://img.shields.io/badge/Platform-Web-orange.svg)
 
-In the project directory, you can run:
+## 🚀 Features
 
-### `npm start`
+### 🔍 Security Scanners
+- **Port Scanner** - Comprehensive port scanning and service detection
+- **SSL/TLS Scanner** - Certificate and encryption analysis
+- **Web Vulnerability Scanner** - OWASP ZAP integration for web security
+- **Subdomain Finder** - Domain enumeration and discovery
+- **Google Dorking Scanner** - Advanced search operator exploitation
+- **Google Poisoning Scanner** - SEO manipulation detection
+- **VirusTotal Scanner** - Multi-engine malware detection
+- **DNS Security Scanner** - DNS configuration analysis
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 📊 Dashboard & Analytics
+- Real-time scan monitoring
+- Historical scan data analysis
+- Vulnerability trend tracking
+- Interactive charts and visualizations
+- Export capabilities (PDF, CSV, JSON)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 🎨 Modern Interface
+- Clean, professional UI design
+- Abstract background animations
+- Dark/Light mode support
+- Mobile-responsive design
+- Real-time progress tracking
 
-### `npm test`
+## 🛠️ Tech Stack
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Frontend
+- **React.js** - Modern UI framework
+- **Redux** - State management
+- **Recharts** - Data visualization
+- **React Router** - Navigation
+- **CSS3** - Modern styling with animations
 
-### `npm run build`
+### Backend
+- **Python Flask** - REST API server
+- **MongoDB** - Database for scan history
+- **JWT** - Authentication and authorization
+- **OWASP ZAP** - Web vulnerability scanning
+- **VirusTotal API** - Malware detection integration
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Tools & Services
+- **Docker** - Containerization
+- **Nginx** - Reverse proxy and load balancing
+- **Let's Encrypt** - SSL certificates
+- **GitHub Actions** - CI/CD pipeline
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 📦 Installation
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Prerequisites
+- Node.js 16+
+- Python 3.8+
+- MongoDB 4.4+
+- Git
 
-### `npm run eject`
+### Quick Start
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+1. **Clone the repository**
+```bash
+git clone https://github.com/YOUR_USERNAME/cyberscan-tools.git
+cd cyberscan-tools
